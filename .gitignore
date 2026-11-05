@@ -1,0 +1,20 @@
+# Output di compilazione .NET
+**/bin/
+**/obj/
+
+# Dipendenze, cache e file temporanei locali al progetto
+/.dotnet-home/
+/.dotnet-sdk/
+/dotnet-install.ps1
+/.local-appdata/
+/.nuget/
+/.temp/
+
+# Impostazioni e file temporanei degli editor
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
