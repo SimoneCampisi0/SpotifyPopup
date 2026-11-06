@@ -1,29 +1,54 @@
 # Spotify Popup
 
-Spotify Popup is a small, always-on-top Windows player for the Spotify desktop app. It displays the current track's artwork, title, artist, album, and playback progress, and provides restart, previous, play/pause, next, and seek controls through Windows media controls.
+A small, always-on-top Windows mini player for the Spotify desktop app. It shows the current track's artwork, title, artist, album and progress, and controls Spotify through Windows media sessions. The entire interface is in English.
 
-Click the restart button on the left of the playback controls to return the current track to the beginning, keeping its playing or paused state. Click anywhere on the progress bar to seek directly to that position, or drag its thumb to choose a position. Restart and seek are enabled when Spotify exposes playback-position control for the current track.
+## Download and run
 
-Drag the popup to move it, including to another monitor, and drag a window edge to resize it. Hover over the track title while the popup is unlocked to see the full title. Click the lock to make the popup semitransparent and allow clicks to pass through it; use the separate unlock button to interact with it again. Spotify determines which metadata and controls are available. The current version does not display the source playlist.
+1. Download `SpotifyPopup.exe` from [GitHub Releases](https://github.com/SimoneCampisi0/SpotifyPopup/releases/latest).
+2. Put it in a writable folder of your choice.
+3. Open Spotify and play or pause a track, then run the executable.
 
-## Requirements
+Requires **64-bit Windows 10 version 2004 (build 19041) or later, or Windows 11**, and the Spotify desktop app. The single-file download includes the .NET runtime: no separate .NET installation, Spotify developer account, API credentials or extra SDK is needed to run it.
 
-- Windows 10 version 2004 (build 19041) or later, or Windows 11.
-- The Spotify desktop app, open with a track playing or paused.
-- The .NET 10 SDK to build the project. The SDK includes the .NET Desktop Runtime needed to run this build.
-- Internet access on the first build so NuGet can restore the Windows SDK reference package.
+Spotify determines which metadata and actions are available. Unsupported controls are disabled. The source playlist is not exposed by the current integration and is not displayed.
 
-No Spotify developer account, API credentials, or extra SDK installation is required for the current Windows media integration.
+## Using the popup
 
-## Install dependencies
+- **Playback:** restart the current track, go to the previous/next track, or play/pause. Restart and seeking preserve Spotify's playback state and are available only when Spotify exposes position control.
+- **Seek:** click the progress bar, drag its thumb, or focus the slider and use arrow keys, Page Up/Down, Home or End. The elapsed time previews your selection. Keyboard changes are committed on key release. If the track changes during selection, choose a position again.
+- **Move and resize:** drag the background or metadata area; drag a window edge to resize. Optional edge snapping helps align the popup to a monitor's work area.
+- **Layouts:** use the layout button in the top-right area, or right-click and choose **Switch layout**, to switch between the scalable normal view and the horizontal compact view. Each layout remembers its own size and position.
+- **Metadata:** hover over the title, artist or album to read its full text while unlocked. Hide the album in Settings to simplify the display.
+- **Status:** Playing, Paused, Stopped and connection states reflect the current session. When disconnected, **Open Spotify** opens the desktop app; play a track there to expose a session.
 
-Download and install the [.NET 10 SDK for Windows](https://dotnet.microsoft.com/download/dotnet/10.0). Verify the installation in PowerShell:
+## Lock, hide and recover
 
-```powershell
-dotnet --list-sdks
-```
+Click **Lock popup** to make the player semitransparent and let clicks pass through to applications below it. Player controls cannot take keyboard input while locked. A separate **Unlock Spotify Popup** button stays accessible over the lock control.
 
-Alternatively, install the SDK **inside the project folder** without a system-wide installation. From the project root, run:
+The notification-area icon provides **Show/Hide**, **Lock/Unlock**, **Settings** and **Exit**. Double-click the icon to show the popup. Hiding keeps the app running; the top-left close button and **Exit** close it.
+
+Default global shortcuts:
+
+| Action | Shortcut |
+| --- | --- |
+| Show or hide popup | Ctrl+Alt+P |
+| Unlock and show popup | Ctrl+Alt+U |
+
+Change both shortcuts in **Settings**. Use a modifier combination such as `Ctrl+Alt+F8`; the app reports invalid combinations and conflicts instead of silently replacing a working configuration. If registration fails on startup, use the notification icon or visible Settings button to choose another combination.
+
+Saved windows are brought back onto an available monitor when their previous screen is absent. The unlock helper follows the actual lock control when the popup moves, resizes or changes layout.
+
+## Settings
+
+Settings includes album visibility, edge snapping, locked opacity (25–100%, previewed on the popup), and both global shortcuts. The player returns to full opacity after the Settings dialog closes; the chosen opacity is used when locked. Save applies preferences; Cancel discards changes.
+
+Preferences are saved to **`SpotifyPopup.settings.json` beside the executable**, including each layout's position and size and the last selected layout. Delete that file while the app is closed to reset preferences. No Spotify installation or data files are changed.
+
+If the folder is read-only, the player remains usable and shows a message that preferences could not be saved. Move the app into a writable folder to remember preferences. Closing the app performs a final best-effort save.
+
+## Build requirements
+
+Building requires the **.NET 10 SDK** and internet access on the first restore/publish. Download it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/10.0), or install it inside the project folder without a system-wide installation:
 
 ```powershell
 Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile .\dotnet-install.ps1
@@ -33,43 +58,44 @@ $env:PATH = "$env:DOTNET_ROOT;$env:PATH"
 dotnet --list-sdks
 ```
 
-The `DOTNET_ROOT` and `PATH` changes apply only to the current PowerShell session; repeat them in a new session. For details, see Microsoft's [dotnet-install documentation](https://learn.microsoft.com/dotnet/core/tools/dotnet-install-script).
+The environment changes apply only to the current PowerShell session. See [Microsoft's dotnet-install documentation](https://learn.microsoft.com/dotnet/core/tools/dotnet-install-script).
 
-## Create a standalone executable
+## Publish a standalone executable
 
-To publish a single self-contained executable for 64-bit Windows, run from the project root:
+From the project root on Windows:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\publish.ps1
 ```
 
-The distributable is `core\bin\publish\win-x64\SpotifyPopup.exe`. Copy this executable on its own; it includes the .NET runtime and does not require a separate .NET installation on the target PC. The .NET SDK is still needed to build it. The first publish needs internet access to download the Windows runtime packs into the project's NuGet cache. The script keeps NuGet packages, .NET CLI data, temporary files and build output inside the project folder.
+The distributable is **`core\bin\publish\win-x64\SpotifyPopup.exe`**. Copy the executable on its own. The first publish downloads the Windows runtime packs; the script keeps NuGet packages, CLI data, temporary files and build output inside the project.
 
-When launched, the single-file app extracts native runtime components to the Windows temporary directory (`%TEMP%\.net` by default). This is managed by .NET; it does not require distributing additional files with the executable.
-## Run
+At runtime, .NET extracts native runtime components to `%TEMP%\.net` by default. This does not require distributing additional files. When testing within the project, set `DOTNET_BUNDLE_EXTRACT_BASE_DIR` to a directory inside the project before starting the executable.
 
-Open Spotify and start playing a track. Then, from the project root, run:
+## Verification and releases
+
+Run from the project root, using the SDK and project-local dependency paths described above:
 
 ```powershell
-.\core\bin\publish\win-x64\SpotifyPopup.exe
+$env:DOTNET_CLI_HOME = "$PWD\.dotnet-home"
+$env:NUGET_PACKAGES = "$PWD\.nuget\packages"
+dotnet run --project tests/SpotifyPopup.LogicChecks -c Release
+dotnet build tests/SpotifyPopup.Checks -c Release -warnaserror
+dotnet run --project tests/SpotifyPopup.Checks -c Release --no-build
 ```
 
-You can also open that executable from File Explorer. The standalone executable includes the .NET runtime.
+Logic checks cover timeline origins, interpolation, seek limits and preference persistence/recovery. Windows UI checks run with a simulated media controller, exercise unavailable controls, command failures, keyboard seeking, lock/unlock, off-screen recovery and layout persistence, and save minimum-size renderings under `test-results`. They do not issue commands to a real Spotify session.
 
-## Close or kill
+The **Windows checks and release** workflow runs those checks, publishes the single-file app, checks its startup/shutdown and icon, and uploads build artifacts. On `main`, it publishes a new GitHub release only after those checks pass, using the version in `core/SpotifyPopup.csproj` and matching notes in `release-notes/vX.Y.Z.md`. Existing published versions are left untouched. Bump the version and add release notes for a subsequent release.
 
-To close normally, unlock the popup if needed, then click the **X** in the upper-left corner. You can also right-click the popup and choose **Chiudi**.
+Hands-on verification with Spotify, a screen reader and mixed-DPI monitors remains necessary for behavior that isolated automated checks cannot reproduce. See [the implementation checklist](docs/implementation-checklist.md).
 
-If the popup is unresponsive, open PowerShell and force-close only Spotify Popup:
+## Force close
+
+Normally, unlock the popup and click the top-left **Exit Spotify Popup** button, or use **Exit** in the right-click/notification menu. If it becomes unresponsive, this PowerShell command closes only Spotify Popup:
 
 ```powershell
 Stop-Process -Name SpotifyPopup -Force
 ```
 
-This command does not close Spotify itself.
-
-
-
-
-
-
+It does not close Spotify itself.

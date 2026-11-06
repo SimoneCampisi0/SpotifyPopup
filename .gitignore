@@ -18,3 +18,8 @@
 *.suo
 *.userosscache
 *.sln.docstates
+
+/dotnet-install.sh
+**/SpotifyPopup.settings.json
+**/SpotifyPopup.settings.json.tmp
+/test-results/
