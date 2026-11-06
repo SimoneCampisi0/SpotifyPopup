@@ -1,6 +1,8 @@
 # Spotify Popup
 
-Spotify Popup is a small, always-on-top Windows player for the Spotify desktop app. It displays the current track's artwork, title, artist, album, and playback progress, and provides previous, play/pause, next, and seek controls through Windows media controls.
+Spotify Popup is a small, always-on-top Windows player for the Spotify desktop app. It displays the current track's artwork, title, artist, album, and playback progress, and provides restart, previous, play/pause, next, and seek controls through Windows media controls.
+
+Click the restart button on the left of the playback controls to return the current track to the beginning, keeping its playing or paused state. Click anywhere on the progress bar to seek directly to that position, or drag its thumb to choose a position. Restart and seek are enabled when Spotify exposes playback-position control for the current track.
 
 Drag the popup to move it, including to another monitor, and drag a window edge to resize it. Hover over the track title while the popup is unlocked to see the full title. Click the lock to make the popup semitransparent and allow clicks to pass through it; use the separate unlock button to interact with it again. Spotify determines which metadata and controls are available. The current version does not display the source playlist.
 

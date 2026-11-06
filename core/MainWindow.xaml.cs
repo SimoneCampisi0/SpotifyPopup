@@ -36,7 +36,7 @@ public partial class MainWindow : Window
         try
         {
             session = manager.GetSessions().FirstOrDefault(s => s.SourceAppUserModelId.Contains("Spotify", StringComparison.OrdinalIgnoreCase));
-            if (session == null) { TitleText.Text = "Apri Spotify e avvia un brano"; ArtistText.Text = ""; AlbumText.Text = ""; Cover.Source = null; Progress.Value = 0; currentKey = ""; return; }
+            if (session == null) { TitleText.Text = "Apri Spotify e avvia un brano"; ArtistText.Text = ""; AlbumText.Text = ""; Cover.Source = null; Progress.Value = 0; Progress.IsEnabled = RestartButton.IsEnabled = false; ElapsedText.Text = DurationText.Text = "0:00"; currentKey = ""; return; }
             var props = await session.TryGetMediaPropertiesAsync();
             TitleText.Text = props.Title; ArtistText.Text = props.Artist; AlbumText.Text = props.AlbumTitle;
             string key = props.Title + "\n" + props.Artist + "\n" + props.AlbumTitle;
@@ -58,17 +58,36 @@ public partial class MainWindow : Window
             if (duration > TimeSpan.Zero && position > duration) position = duration;
             ElapsedText.Text = Format(position); DurationText.Text = Format(duration);
             if (!Progress.IsMouseCaptureWithin) Progress.Value = duration.TotalSeconds > 0 ? Math.Clamp(position.TotalSeconds / duration.TotalSeconds * 100, 0, 100) : 0;
-            Progress.IsEnabled = info.Controls.IsPlaybackPositionEnabled && duration > TimeSpan.Zero;
+            Progress.IsEnabled = RestartButton.IsEnabled = info.Controls.IsPlaybackPositionEnabled && duration > TimeSpan.Zero;
             PlayButton.Content = info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing ? "\uE769" : "\uE768";
         }
-        catch (Exception) { TitleText.Text = "Spotify non disponibile"; }
+        catch (Exception) { TitleText.Text = "Spotify non disponibile"; Progress.IsEnabled = RestartButton.IsEnabled = false; }
         finally { busy = false; }
     }
     private static string Format(TimeSpan t) => t < TimeSpan.Zero ? "0:00" : $"{(int)t.TotalMinutes}:{t.Seconds:00}";
     private async void PlayClick(object sender, RoutedEventArgs e) { if (session != null) { await session.TryTogglePlayPauseAsync(); await Refresh(); } }
     private async void PreviousClick(object sender, RoutedEventArgs e) { if (session != null) { await session.TrySkipPreviousAsync(); await Refresh(); } }
     private async void NextClick(object sender, RoutedEventArgs e) { if (session != null) { await session.TrySkipNextAsync(); await Refresh(); } }
-    private async void Seek(object sender, MouseButtonEventArgs e) { if (session != null && Progress.IsEnabled) { var t = session.GetTimelineProperties(); await session.TryChangePlaybackPositionAsync((long)(t.StartTime.Ticks + (t.EndTime - t.StartTime).Ticks * Progress.Value / 100)); } }
+    private async void RestartClick(object sender, RoutedEventArgs e) => await SeekToFraction(0);
+    private async void Seek(object sender, MouseButtonEventArgs e) => await SeekToFraction(Progress.Value / 100);
+    private async Task SeekToFraction(double fraction)
+    {
+        var targetSession = session;
+        if (targetSession == null || !Progress.IsEnabled) return;
+        try
+        {
+            var timeline = targetSession.GetTimelineProperties();
+            var duration = timeline.EndTime - timeline.StartTime;
+            if (!targetSession.GetPlaybackInfo().Controls.IsPlaybackPositionEnabled || duration <= TimeSpan.Zero) return;
+            var offset = TimeSpan.FromTicks((long)(duration.Ticks * Math.Clamp(fraction, 0, 1)));
+            if (await targetSession.TryChangePlaybackPositionAsync((timeline.StartTime + offset).Ticks))
+            {
+                Progress.Value = Math.Clamp(fraction, 0, 1) * 100;
+                ElapsedText.Text = Format(offset);
+            }
+        }
+        catch (Exception) { await Refresh(); }
+    }
     private void OnDrag(object sender, MouseButtonEventArgs e)
     {
         if (locked || e.ButtonState != MouseButtonState.Pressed) return;
