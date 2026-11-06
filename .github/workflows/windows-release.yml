@@ -1,0 +1,127 @@
+name: Windows checks and release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'core/**'
+      - 'tests/**'
+      - 'publish.ps1'
+      - 'release-notes/**'
+      - '.github/workflows/windows-release.yml'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_CLI_HOME: ${{ github.workspace }}/.dotnet-home
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet-sdk
+  DOTNET_BUNDLE_EXTRACT_BASE_DIR: ${{ github.workspace }}/.temp/bundle
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+  DOTNET_NOLOGO: '1'
+
+jobs:
+  check:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run playback and persistence regression checks
+        run: dotnet run --project tests/SpotifyPopup.LogicChecks -c Release
+      - name: Build Windows UI checks with warnings treated as errors
+        run: dotnet build tests/SpotifyPopup.Checks -c Release -warnaserror
+      - name: Run isolated Windows UI checks
+        run: dotnet run --project tests/SpotifyPopup.Checks -c Release --no-build
+      - name: Publish standalone executable
+        shell: pwsh
+        run: ./publish.ps1
+      - name: Verify standalone startup and executable icon
+        shell: pwsh
+        run: |
+          $exe = Join-Path $PWD 'core/bin/publish/win-x64/SpotifyPopup.exe'
+          if (!(Test-Path $exe) -or (Get-Item $exe).Length -lt 10MB) { throw 'Standalone executable missing or incomplete.' }
+          $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
+          if ($null -eq $icon) { throw 'Executable icon is missing.' }
+          $icon.Dispose()
+          $process = Start-Process $exe -PassThru
+          try {
+            Start-Sleep -Seconds 6
+            $process.Refresh()
+            if ($process.HasExited) { throw 'The published executable exited during startup.' }
+            if ($process.MainWindowHandle -eq 0) { throw 'The published executable did not create a main window.' }
+            $null = $process.CloseMainWindow()
+            if (!$process.WaitForExit(10000)) { throw 'The published executable did not close normally.' }
+            if ($process.ExitCode -ne 0) { throw "The published executable returned exit code $($process.ExitCode)." }
+          } finally {
+            $process.Refresh()
+            if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }
+          }
+          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  SpotifyPopup.exe" | Set-Content 'core/bin/publish/win-x64/SpotifyPopup.exe.sha256' -Encoding ascii
+      - name: Upload executable and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpotifyPopup-win-x64
+          path: |
+            core/bin/publish/win-x64/SpotifyPopup.exe
+            core/bin/publish/win-x64/SpotifyPopup.exe.sha256
+          if-no-files-found: error
+      - name: Upload UI verification images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-UI-checks
+          path: test-results/*.png
+          if-no-files-found: ignore
+
+  release:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: SpotifyPopup-win-x64
+          path: release-assets
+      - name: Publish versioned GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [xml]$project = Get-Content 'core/SpotifyPopup.csproj'
+          $version = [string]$project.Project.PropertyGroup.Version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'A stable semantic version is required.' }
+          $tag = "v$version"
+          $notes = "release-notes/$tag.md"
+          if (!(Test-Path $notes)) { throw "Release notes missing: $notes" }
+          $existing = gh release view $tag --repo $env:GITHUB_REPOSITORY --json isDraft,targetCommitish 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            $release = $existing | ConvertFrom-Json
+            if (!$release.isDraft) {
+              Write-Host "Release $tag is already published; bump the project version to publish a new release."
+              exit 0
+            }
+            if ($release.targetCommitish -ne $env:GITHUB_SHA) { throw 'A draft release already targets another commit.' }
+            gh release upload $tag 'release-assets/SpotifyPopup.exe' 'release-assets/SpotifyPopup.exe.sha256' --clobber --repo $env:GITHUB_REPOSITORY
+          } else {
+            gh release create $tag 'release-assets/SpotifyPopup.exe' 'release-assets/SpotifyPopup.exe.sha256' --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "Spotify Popup $tag" --notes-file $notes --draft
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Release asset upload failed.' }
+          gh release edit $tag --repo $env:GITHUB_REPOSITORY --draft=false --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
+          gh release view $tag --repo $env:GITHUB_REPOSITORY --json url --jq '.url'

@@ -1,124 +1,320 @@
-using System.IO;
-using System.Runtime.InteropServices;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using Windows.Media.Control;
+using Microsoft.Win32;
+using Forms = System.Windows.Forms;
 
 namespace SpotifyPopup;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Window, INotifyPropertyChanged
 {
-    [DllImport("user32.dll", EntryPoint="GetWindowLongW")] private static extern int GetWindowLong(IntPtr h, int n);
-    [DllImport("user32.dll", EntryPoint="SetWindowLongW")] private static extern int SetWindowLong(IntPtr h, int n, int value);
-    private GlobalSystemMediaTransportControlsSessionManager? manager;
-    private GlobalSystemMediaTransportControlsSession? session;
-    private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly IMediaController media;
+    private readonly SettingsStore store;
+    private readonly bool enableShell;
+    private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
+    private readonly DispatcherTimer saveTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
+    private readonly AppSettings settings;
+    private HwndSource? source;
+    private HotkeyManager? hotkeys;
+    private Forms.NotifyIcon? tray;
+    private Forms.ToolStripMenuItem? trayVisibility, trayLock;
+    private System.Drawing.Icon? trayIcon;
     private Window? unlock;
-    private bool busy;
-    private bool locked;
-    private string currentKey = "";
-    public MainWindow() { InitializeComponent(); timer.Tick += async (_, _) => await Refresh(); }
+    private SettingsWindow? settingsWindow;
+    private bool locked, closed, restoring = true, runningCommand;
+    private Slider? editingSlider;
+    private string editingTrackKey = "";
+    private DateTimeOffset noticeUntil;
+    private string? startupWarning;
+    public PlayerState Player { get; } = new();
+    public event PropertyChangedEventHandler? PropertyChanged;
+    public Visibility AlbumVisibility => settings.ShowAlbum && !string.IsNullOrEmpty(Player.Album) ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility OpenSpotifyVisibility => Player.Connected ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility NoticeVisibility => string.IsNullOrEmpty(Player.Notice) ? Visibility.Collapsed : Visibility.Visible;
+
+    public MainWindow() : this(null, null, true) { }
+    public MainWindow(IMediaController? controller, SettingsStore? settingsStore, bool enableShell)
+    {
+        this.enableShell = enableShell; store = settingsStore ?? new SettingsStore(); settings = store.Load(out startupWarning);
+        InitializeComponent(); DataContext = this;
+        media = controller ?? new MediaController(Dispatcher);
+        media.Updated += OnMediaUpdated; media.Notice += OnNotice;
+        Player.PropertyChanged += (_, _) => { MinHeight = settings.CompactMode ? (string.IsNullOrEmpty(Player.Notice) ? 138 : 166) : 255; Changed(); };
+        ApplyLayout();
+        timer.Tick += (_, _) =>
+        {
+            media.Tick();
+            if (noticeUntil != default && DateTimeOffset.UtcNow >= noticeUntil) { noticeUntil = default; Player.SetNotice(""); }
+        };
+        saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveSettings(); };
+    }
+    private void Changed() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+    private void OnSourceInitialized(object? sender, EventArgs e)
+    {
+        source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+        source?.AddHook(WindowHook);
+        if (enableShell && source != null)
+        {
+            hotkeys = new HotkeyManager(source, ToggleVisibility, () => { SetLocked(false); ShowPopup(); });
+            if (!hotkeys.TryApply(settings.ToggleShortcut, settings.UnlockShortcut, out var error)) startupWarning = error + " Open Settings to change your shortcuts.";
+        }
+    }
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        try { manager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync(); timer.Start(); await Refresh(); }
-        catch (Exception) { TitleText.Text = "Controlli multimediali non disponibili"; }
+        RestorePosition(); restoring = false;
+        if (enableShell) { SetupTray(); SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged; }
+        if (startupWarning != null) ShowNotice(startupWarning);
+        timer.Start();
+        try { await media.InitializeAsync(); }
+        catch (Exception) { OnMediaUpdated(this, new MediaSnapshot { Status = "Media controls unavailable" }); }
     }
-    private async Task Refresh()
+    private void OnMediaUpdated(object? sender, MediaSnapshot snapshot)
     {
-        if (busy || manager == null) return;
-        busy = true;
-        try
-        {
-            session = manager.GetSessions().FirstOrDefault(s => s.SourceAppUserModelId.Contains("Spotify", StringComparison.OrdinalIgnoreCase));
-            if (session == null) { TitleText.Text = "Apri Spotify e avvia un brano"; ArtistText.Text = ""; AlbumText.Text = ""; Cover.Source = null; Progress.Value = 0; Progress.IsEnabled = RestartButton.IsEnabled = false; ElapsedText.Text = DurationText.Text = "0:00"; currentKey = ""; return; }
-            var props = await session.TryGetMediaPropertiesAsync();
-            TitleText.Text = props.Title; ArtistText.Text = props.Artist; AlbumText.Text = props.AlbumTitle;
-            string key = props.Title + "\n" + props.Artist + "\n" + props.AlbumTitle;
-            if (key != currentKey)
-            {
-                currentKey = key; Cover.Source = null;
-                if (props.Thumbnail != null)
-                {
-                    using var stream = await props.Thumbnail.OpenReadAsync();
-                    using var input = stream.AsStreamForRead();
-                    var img = new BitmapImage(); img.BeginInit(); img.CacheOption = BitmapCacheOption.OnLoad; img.StreamSource = input; img.EndInit(); img.Freeze(); Cover.Source = img;
-                }
-            }
-            var info = session.GetPlaybackInfo(); var timeline = session.GetTimelineProperties();
-            var position = timeline.Position;
-            if (info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing) position += DateTimeOffset.UtcNow - timeline.LastUpdatedTime;
-            var duration = timeline.EndTime - timeline.StartTime;
-            position = position < TimeSpan.Zero ? TimeSpan.Zero : position;
-            if (duration > TimeSpan.Zero && position > duration) position = duration;
-            ElapsedText.Text = Format(position); DurationText.Text = Format(duration);
-            if (!Progress.IsMouseCaptureWithin) Progress.Value = duration.TotalSeconds > 0 ? Math.Clamp(position.TotalSeconds / duration.TotalSeconds * 100, 0, 100) : 0;
-            Progress.IsEnabled = RestartButton.IsEnabled = info.Controls.IsPlaybackPositionEnabled && duration > TimeSpan.Zero;
-            PlayButton.Content = info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing ? "\uE769" : "\uE768";
-        }
-        catch (Exception) { TitleText.Text = "Spotify non disponibile"; Progress.IsEnabled = RestartButton.IsEnabled = false; }
-        finally { busy = false; }
+        if (closed) return;
+        if (!Dispatcher.CheckAccess()) { Dispatcher.BeginInvoke(new Action(() => OnMediaUpdated(sender, snapshot))); return; }
+        if (editingSlider != null && (!snapshot.CanSeek || editingTrackKey != snapshot.TrackKey)) CancelSeek();
+        Player.Apply(snapshot);
+        if (editingSlider == null) UpdateProgress(snapshot);
     }
-    private static string Format(TimeSpan t) => t < TimeSpan.Zero ? "0:00" : $"{(int)t.TotalMinutes}:{t.Seconds:00}";
-    private async void PlayClick(object sender, RoutedEventArgs e) { if (session != null) { await session.TryTogglePlayPauseAsync(); await Refresh(); } }
-    private async void PreviousClick(object sender, RoutedEventArgs e) { if (session != null) { await session.TrySkipPreviousAsync(); await Refresh(); } }
-    private async void NextClick(object sender, RoutedEventArgs e) { if (session != null) { await session.TrySkipNextAsync(); await Refresh(); } }
-    private async void RestartClick(object sender, RoutedEventArgs e) => await SeekToFraction(0);
-    private async void Seek(object sender, MouseButtonEventArgs e) => await SeekToFraction(Progress.Value / 100);
-    private async Task SeekToFraction(double fraction)
+    private void UpdateProgress(MediaSnapshot snapshot)
     {
-        var targetSession = session;
-        if (targetSession == null || !Progress.IsEnabled) return;
-        try
-        {
-            var timeline = targetSession.GetTimelineProperties();
-            var duration = timeline.EndTime - timeline.StartTime;
-            if (!targetSession.GetPlaybackInfo().Controls.IsPlaybackPositionEnabled || duration <= TimeSpan.Zero) return;
-            var offset = TimeSpan.FromTicks((long)(duration.Ticks * Math.Clamp(fraction, 0, 1)));
-            if (await targetSession.TryChangePlaybackPositionAsync((timeline.StartTime + offset).Ticks))
-            {
-                Progress.Value = Math.Clamp(fraction, 0, 1) * 100;
-                ElapsedText.Text = Format(offset);
-            }
-        }
-        catch (Exception) { await Refresh(); }
+        var value = snapshot.Duration > 0 ? Math.Clamp(snapshot.Position / snapshot.Duration * 100, 0, 100) : 0;
+        NormalProgress.Value = CompactProgress.Value = value;
+        NormalElapsed.Text = CompactElapsed.Text = PlaybackMath.Format(snapshot.Position);
     }
+    private void OnNotice(object? sender, string message)
+    {
+        if (!Dispatcher.CheckAccess()) { Dispatcher.BeginInvoke(new Action(() => ShowNotice(message))); return; }
+        ShowNotice(message);
+    }
+    private void ShowNotice(string message)
+    {
+        if (closed) return;
+        Player.SetNotice(message); noticeUntil = DateTimeOffset.UtcNow.AddSeconds(8);
+    }
+    private async Task RunCommand(MediaAction action, double fraction = 0, string? key = null)
+    {
+        if (closed || runningCommand) return;
+        runningCommand = true; Player.SetWorking(true);
+        try { await media.ExecuteAsync(action, fraction, key); }
+        catch (Exception) { ShowNotice("The command could not be completed. Please try again."); }
+        finally { runningCommand = false; if (!closed) { Player.SetWorking(false); UpdateProgress(media.Snapshot); } }
+    }
+    private async void PlayClick(object sender, RoutedEventArgs e) => await RunCommand(MediaAction.PlayPause);
+    private async void PreviousClick(object sender, RoutedEventArgs e) => await RunCommand(MediaAction.Previous);
+    private async void NextClick(object sender, RoutedEventArgs e) => await RunCommand(MediaAction.Next);
+    private async void RestartClick(object sender, RoutedEventArgs e) => await RunCommand(MediaAction.Seek, 0, media.Snapshot.TrackKey);
+    private void BeginSeek(Slider slider)
+    {
+        if (!Player.CanSeek) return;
+        editingSlider = slider; editingTrackKey = media.Snapshot.TrackKey;
+    }
+    private void SeekMouseDown(object sender, MouseButtonEventArgs e) => BeginSeek((Slider)sender);
+    private void SeekMouseUp(object sender, MouseButtonEventArgs e)
+    {
+        // Commit after the Slider/Thumb has processed the final mouse position.
+        Dispatcher.BeginInvoke(new Action(async () => await CommitSeekAsync((Slider)sender)), DispatcherPriority.Input);
+    }
+    private void SeekCaptureLost(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Released) { CancelSeek(); return; }
+        Dispatcher.BeginInvoke(new Action(async () => await CommitSeekAsync((Slider)sender)), DispatcherPriority.Input);
+    }
+    private static bool IsSeekKey(Key key) => key is Key.Left or Key.Right or Key.Up or Key.Down or Key.Home or Key.End or Key.PageUp or Key.PageDown;
+    private void SeekKeyDown(object sender, KeyEventArgs e) { if (IsSeekKey(e.Key)) BeginSeek((Slider)sender); }
+    private async void SeekKeyUp(object sender, KeyEventArgs e) { if (IsSeekKey(e.Key)) await CommitSeekAsync((Slider)sender); }
+    private async void SeekKeyboardFocusLost(object sender, KeyboardFocusChangedEventArgs e) => await CommitSeekAsync((Slider)sender);
+    private void SeekValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (editingSlider != sender) return;
+        var text = PlaybackMath.Format(media.Snapshot.Duration * e.NewValue / 100);
+        NormalElapsed.Text = CompactElapsed.Text = text;
+    }
+    private async Task CommitSeekAsync(Slider slider)
+    {
+        if (editingSlider != slider || closed) return;
+        var fraction = slider.Value / 100; var key = editingTrackKey;
+        editingSlider = null;
+        await RunCommand(MediaAction.Seek, fraction, key);
+    }
+    private void CancelSeek() { editingSlider = null; UpdateProgress(media.Snapshot); }
     private void OnDrag(object sender, MouseButtonEventArgs e)
     {
         if (locked || e.ButtonState != MouseButtonState.Pressed) return;
-        for (DependencyObject? element = e.OriginalSource as DependencyObject; element != null && element != RootSurface; element = VisualTreeHelper.GetParent(element))
-        {
-            if (element is ButtonBase or Slider or Thumb or ResizeGrip) return;
-        }
-        DragMove();
+        for (DependencyObject? item = e.OriginalSource as DependencyObject; item != null && item != RootSurface; item = GetVisualParent(item))
+            if (item is ButtonBase or Slider or Thumb or ResizeGrip) return;
+        try { DragMove(); NativeMethods.EnsureVisible(this, settings.SnapToEdges); QueueSave(); }
+        catch (InvalidOperationException) { /* The button can be released before DragMove starts. */ }
     }
+    private static DependencyObject? GetVisualParent(DependencyObject item) => item is Visual ? VisualTreeHelper.GetParent(item) : LogicalTreeHelper.GetParent(item);
     private void LockClick(object sender, RoutedEventArgs e) => SetLocked(true);
-    private void SetLocked(bool value)
+    internal void SetLocked(bool value)
     {
-        locked = value; Opacity = value ? 0.58 : 1;
-        ToolTipService.SetIsEnabled(TitleText, !value);
-        if (value && TitleText.ToolTip is ToolTip titleToolTip) titleToolTip.IsOpen = false;
-        var h = new WindowInteropHelper(this).Handle; var style = GetWindowLong(h, -20); SetWindowLong(h, -20, value ? style | 0x20 : style & ~0x20);
+        if (closed || locked == value) return;
+        locked = value; Opacity = value ? settings.LockedOpacity : 1;
+        foreach (var tooltip in Descendants<ToolTip>(RootSurface)) tooltip.IsOpen = false;
+        foreach (var text in Descendants<TextBlock>(RootSurface))
+        {
+            ToolTipService.SetIsEnabled(text, !value);
+            if (text.ToolTip is ToolTip tooltip) tooltip.IsOpen = false;
+        }
+        if (value) { CancelSeek(); Keyboard.ClearFocus(); }
+        RootSurface.IsEnabled = !value;
+        var handle = new WindowInteropHelper(this).Handle;
+        var style = NativeMethods.GetWindowLong(handle, NativeMethods.GwlExStyle);
+        var mask = NativeMethods.WsExTransparent | NativeMethods.WsExNoActivate;
+        NativeMethods.SetWindowLong(handle, NativeMethods.GwlExStyle, value ? style | mask : style & ~mask);
         if (value)
         {
-            var button = new Button { Content = "\uE785", ToolTip = "Sblocca Spotify Popup", FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 15, Background = new SolidColorBrush(Color.FromArgb(240, 39, 57, 52)), Foreground = Brushes.White, Style = (Style)FindResource("GlassButton") };
-            System.Windows.Automation.AutomationProperties.SetName(button, "Sblocca Spotify Popup");
-            unlock = new Window { Width = 32, Height = 32, WindowStyle = WindowStyle.None, AllowsTransparency = true, Background = Brushes.Transparent, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false, Topmost = true, Content = button, Owner = this };
-            button.Click += (_, _) => SetLocked(false); PositionUnlock(); unlock.Show();
+            var button = new Button { Content = "\uE785", ToolTip = "Unlock Spotify Popup", Style = (Style)FindResource("GlassButton"), Width = 32, Height = 32, Background = new SolidColorBrush(Color.FromRgb(39, 57, 52)) };
+            System.Windows.Automation.AutomationProperties.SetName(button, "Unlock Spotify Popup");
+            unlock = new Window { Width = 32, Height = 32, WindowStyle = WindowStyle.None, AllowsTransparency = true, Background = Brushes.Transparent,
+                ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false, ShowActivated = false, Topmost = true, Content = button, Owner = this };
+            button.Click += (_, _) => SetLocked(false);
+            if (IsVisible) { unlock.Show(); PositionUnlock(); }
         }
         else { unlock?.Close(); unlock = null; }
+        UpdateTray();
     }
-    private void PositionUnlock() { if (unlock != null) { unlock.Left = Left + ActualWidth - 51; unlock.Top = Top + 11; } }
-    private void OnLocationChanged(object? sender, EventArgs e) => PositionUnlock();
-    private void OnSizeChanged(object sender, SizeChangedEventArgs e) => PositionUnlock();
+    private static IEnumerable<T> Descendants<T>(DependencyObject root) where T : DependencyObject
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is T typed) yield return typed;
+            foreach (var nested in Descendants<T>(child)) yield return nested;
+        }
+    }
+    private void PositionUnlock()
+    {
+        if (unlock == null || !unlock.IsVisible || !IsVisible) return;
+        var point = LockButton.PointToScreen(new Point(0, 0));
+        NativeMethods.Move(unlock, (int)Math.Round(point.X), (int)Math.Round(point.Y));
+    }
+    private WindowPlacement Placement => settings.CompactMode ? settings.Compact : settings.Normal;
+    private void CapturePlacement()
+    {
+        if (restoring || !IsLoaded || WindowState != WindowState.Normal) return;
+        var bounds = NativeMethods.Bounds(this);
+        Placement.X = bounds.Left; Placement.Y = bounds.Top; Placement.Width = ActualWidth; Placement.Height = ActualHeight;
+    }
+    private void ApplyLayout()
+    {
+        var compact = settings.CompactMode;
+        MinWidth = compact ? 360 : 330; MinHeight = compact ? (string.IsNullOrEmpty(Player.Notice) ? 138 : 166) : 255;
+        NormalLayout.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        CompactLayout.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
+        Width = Math.Max(MinWidth, Placement.Width); Height = Math.Max(MinHeight, Placement.Height);
+        Changed();
+    }
+    private void RestorePosition()
+    {
+        if (Placement.X is int x && Placement.Y is int y) NativeMethods.Move(this, x, y);
+        NativeMethods.EnsureVisible(this); PositionUnlock();
+    }
+    private void CompactClick(object sender, RoutedEventArgs e) => ToggleCompact();
+    internal void ToggleCompact()
+    {
+        CapturePlacement(); restoring = true;
+        settings.CompactMode = !settings.CompactMode; ApplyLayout(); UpdateLayout(); RestorePosition();
+        restoring = false; QueueSave();
+    }
+    private void OnLocationChanged(object? sender, EventArgs e) { PositionUnlock(); QueueSave(); }
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e) { PositionUnlock(); QueueSave(); }
+    private void QueueSave() { if (restoring || closed) return; saveTimer.Stop(); saveTimer.Start(); }
+    private void SaveSettings()
+    {
+        CapturePlacement();
+        if (!store.Save(settings)) ShowNotice("Settings could not be saved. Move the app to a writable folder to remember your preferences.");
+    }
+    private void OnDisplaySettingsChanged(object? sender, EventArgs e) => Dispatcher.BeginInvoke(new Action(() => { if (!closed) { NativeMethods.EnsureVisible(this); PositionUnlock(); QueueSave(); } }));
+    private IntPtr WindowHook(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (message is 0x02E0 or 0x007E) Dispatcher.BeginInvoke(new Action(() => { if (!closed && IsLoaded) { NativeMethods.EnsureVisible(this); PositionUnlock(); } }), DispatcherPriority.Loaded);
+        return IntPtr.Zero;
+    }
+    private void SetupTray()
+    {
+        try
+        {
+            var resource = Application.GetResourceStream(new Uri("pack://application:,,,/SpotifyPopup;component/Assets/logo.ico"));
+            using var stream = resource!.Stream;
+            trayIcon = new System.Drawing.Icon(stream);
+            var menu = new Forms.ContextMenuStrip();
+            trayVisibility = new Forms.ToolStripMenuItem("Hide", null, (_, _) => Dispatch(ToggleVisibility));
+            trayLock = new Forms.ToolStripMenuItem("Lock", null, (_, _) => Dispatch(() => { SetLocked(!locked); ShowPopup(false); }));
+            menu.Items.Add(trayVisibility); menu.Items.Add(trayLock);
+            menu.Items.Add("Settings", null, (_, _) => Dispatch(OpenSettings));
+            menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add("Exit", null, (_, _) => Dispatch(Close));
+            tray = new Forms.NotifyIcon { Text = "Spotify Popup", Icon = trayIcon, ContextMenuStrip = menu, Visible = true };
+            tray.DoubleClick += (_, _) => Dispatch(() => ShowPopup());
+            UpdateTray();
+        }
+        catch (Exception) { ShowNotice("The notification icon could not be created. Keyboard shortcuts are still available."); }
+    }
+    private void Dispatch(Action action) { if (!closed) Dispatcher.BeginInvoke(action); }
+    private void UpdateTray()
+    {
+        if (trayVisibility != null) trayVisibility.Text = IsVisible ? "Hide" : "Show";
+        if (trayLock != null) trayLock.Text = locked ? "Unlock" : "Lock";
+    }
+    private void ToggleVisibility()
+    {
+        if (IsVisible && WindowState != WindowState.Minimized) { unlock?.Hide(); Hide(); }
+        else ShowPopup();
+        UpdateTray();
+    }
+    private void ShowPopup(bool activate = true)
+    {
+        if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+        Show(); NativeMethods.EnsureVisible(this);
+        if (locked && unlock != null) { unlock.Show(); PositionUnlock(); }
+        if (activate && !locked) Activate();
+        UpdateTray();
+    }
+    private void HideClick(object sender, RoutedEventArgs e) => ToggleVisibility();
+    private void SettingsClick(object sender, RoutedEventArgs e) => OpenSettings();
+    private void OpenSettings()
+    {
+        SetLocked(false); ShowPopup();
+        if (settingsWindow != null) { settingsWindow.Activate(); return; }
+        var originalOpacity = settings.LockedOpacity;
+        settingsWindow = new SettingsWindow(settings, value => { Opacity = value; },
+            (toggle, unlockValue) => hotkeys == null ? null : hotkeys.TryApply(toggle, unlockValue, out var error) ? null : error);
+        settingsWindow.Owner = this;
+        var dialog = settingsWindow;
+        try
+        {
+            if (dialog.ShowDialog() == true)
+            {
+                settings.ShowAlbum = dialog.ShowAlbum; settings.SnapToEdges = dialog.SnapToEdges;
+                settings.LockedOpacity = dialog.LockedOpacity; settings.ToggleShortcut = dialog.ToggleShortcut; settings.UnlockShortcut = dialog.UnlockShortcut;
+                Changed(); SaveSettings();
+            }
+            else settings.LockedOpacity = originalOpacity;
+        }
+        finally { settingsWindow = null; Opacity = 1; }
+    }
+    private void OpenSpotifyClick(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("spotify:") { UseShellExecute = true }); }
+        catch (Exception) { ShowNotice("Spotify could not be opened. Install or open the Spotify desktop app, then play a track."); }
+    }
     private void ExitClick(object sender, RoutedEventArgs e) => Close();
-    private void OnClosed(object? sender, EventArgs e) { timer.Stop(); unlock?.Close(); }
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        if (closed) return;
+        CapturePlacement(); store.Save(settings); closed = true;
+        timer.Stop(); saveTimer.Stop(); media.Updated -= OnMediaUpdated; media.Notice -= OnNotice; media.Dispose();
+        if (enableShell) SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
+        hotkeys?.Dispose(); source?.RemoveHook(WindowHook); unlock?.Close();
+        if (tray != null) { tray.Visible = false; tray.ContextMenuStrip?.Dispose(); tray.Dispose(); }
+        trayIcon?.Dispose();
+    }
 }
-
-
-

@@ -1,0 +1,37 @@
+<Window x:Class="SpotifyPopup.SettingsWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Title="Spotify Popup settings" Width="440" Height="485" MinWidth="400" MinHeight="460" WindowStartupLocation="CenterOwner"
+ Background="#172522" Foreground="#EAF6F3" ShowInTaskbar="False" ResizeMode="CanResize" Icon="/Assets/logo.ico">
+ <Window.Resources>
+  <Style TargetType="TextBlock"><Setter Property="Foreground" Value="#EAF6F3"/></Style>
+  <Style TargetType="CheckBox"><Setter Property="Foreground" Value="#EAF6F3"/><Setter Property="Margin" Value="0,0,0,12"/></Style>
+  <Style TargetType="TextBox"><Setter Property="Padding" Value="8,6"/><Setter Property="Background" Value="#2E423B"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="#7A9A8A"/></Style>
+  <Style TargetType="Button"><Setter Property="Padding" Value="16,7"/><Setter Property="Margin" Value="8,0,0,0"/></Style>
+ </Window.Resources>
+ <Grid Margin="24">
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <TextBlock Text="Make it yours" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,20"/>
+  <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+   <StackPanel>
+    <CheckBox x:Name="ShowAlbumBox" Content="Show album" AutomationProperties.Name="Show album"/>
+    <CheckBox x:Name="SnapBox" Content="Snap to screen edges" AutomationProperties.Name="Snap to screen edges"/>
+    <Label Target="{Binding ElementName=OpacitySlider}" Foreground="#EAF6F3" Padding="0" Content="Locked opacity"/>
+    <Grid Margin="0,7,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
+     <Slider x:Name="OpacitySlider" Minimum="25" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OpacityChanged" AutomationProperties.Name="Locked opacity"/>
+     <TextBlock x:Name="OpacityValue" Grid.Column="1" HorizontalAlignment="Right"/>
+    </Grid>
+    <TextBlock Text="Preview appears on the popup. Unlock stays visible." FontSize="11" Foreground="#B7CEC2" TextWrapping="Wrap" Margin="0,3,0,15"/>
+    <Label Target="{Binding ElementName=ToggleBox}" Foreground="#EAF6F3" Padding="0" Content="Show / hide shortcut"/>
+    <TextBox x:Name="ToggleBox" Margin="0,6,0,12" AutomationProperties.Name="Show / hide shortcut"/>
+    <Label Target="{Binding ElementName=UnlockBox}" Foreground="#EAF6F3" Padding="0" Content="Unlock and show shortcut"/>
+    <TextBox x:Name="UnlockBox" Margin="0,6,0,7" AutomationProperties.Name="Unlock and show shortcut"/>
+    <TextBlock Text="Example: Ctrl+Alt+P. Shortcuts must be different." FontSize="11" Foreground="#B7CEC2" TextWrapping="Wrap"/>
+    <TextBlock x:Name="ErrorText" Foreground="#FFE4B2" FontSize="12" TextWrapping="Wrap" Margin="0,12,0,0" AutomationProperties.LiveSetting="Assertive"/>
+   </StackPanel>
+  </ScrollViewer>
+  <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+   <Button Content="Cancel" IsCancel="True" Click="CancelClick"/>
+   <Button Content="Save" IsDefault="True" Click="SaveClick"/>
+  </StackPanel>
+ </Grid>
+</Window>
