@@ -2,7 +2,7 @@
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
- Title="Spotify Popup" Icon="/Assets/logo.ico" Width="390" Height="270" MinWidth="330" MinHeight="255"
+ Title="Spotify Popup" Icon="/SpotifyPopup;component/Assets/logo.ico" Width="390" Height="270" MinWidth="330" MinHeight="255"
  WindowStyle="None" AllowsTransparency="True" Background="Transparent" Topmost="True"
  ResizeMode="CanResizeWithGrip" Loaded="OnLoaded" Closed="OnClosed" SourceInitialized="OnSourceInitialized"
  LocationChanged="OnLocationChanged" SizeChanged="OnSizeChanged" UseLayoutRounding="True" SnapsToDevicePixels="True">

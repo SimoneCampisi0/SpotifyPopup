@@ -14,7 +14,6 @@ internal static class Program
     private static int Main()
     {
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-        Application.ResourceAssembly = typeof(MainWindow).Assembly;
         var exit = 0;
         app.Startup += async (_, _) =>
         {

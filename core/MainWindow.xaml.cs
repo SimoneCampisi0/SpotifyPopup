@@ -245,7 +245,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             var resource = Application.GetResourceStream(new Uri("pack://application:,,,/SpotifyPopup;component/Assets/logo.ico"));
             using var stream = resource!.Stream;
-            trayIcon = new System.Drawing.Icon(stream);
+            using var embeddedIcon = new System.Drawing.Icon(stream);
+            trayIcon = (System.Drawing.Icon)embeddedIcon.Clone();
             var menu = new Forms.ContextMenuStrip();
             trayVisibility = new Forms.ToolStripMenuItem("Hide", null, (_, _) => Dispatch(ToggleVisibility));
             trayLock = new Forms.ToolStripMenuItem("Lock", null, (_, _) => Dispatch(() => { SetLocked(!locked); ShowPopup(false); }));
