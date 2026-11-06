@@ -1,0 +1,12 @@
+Spotify Popup v1.1.1 — documentation organization
+
+- Exclude the local .work/ folder from Git.
+- Remove previously tracked working Markdown documents, preserving AGENTS.md.
+- Keep local copies of the Markdown documents in .work/ with their original relative paths.
+- Use tracked .txt release notes so automatic publication works without the moved Markdown files.
+
+English/Italian support is planned in a separate local task document. This release does not implement localization; the interface remains in English.
+Player functionality is unchanged.
+
+The release pipeline runs the existing logic checks, isolated Windows UI checks, executable startup/shutdown checks and icon verification before publication.
+Download SpotifyPopup.exe for 64-bit Windows 10 version 2004 or later, or Windows 11.

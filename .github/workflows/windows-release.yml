@@ -107,7 +107,7 @@ jobs:
           $version = [string]$project.Project.PropertyGroup.Version
           if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'A stable semantic version is required.' }
           $tag = "v$version"
-          $notes = "release-notes/$tag.md"
+          $notes = "release-notes/$tag.txt"
           if (!(Test-Path $notes)) { throw "Release notes missing: $notes" }
           $existing = gh release view $tag --repo $env:GITHUB_REPOSITORY --json isDraft,targetCommitish 2>$null
           if ($LASTEXITCODE -eq 0) {

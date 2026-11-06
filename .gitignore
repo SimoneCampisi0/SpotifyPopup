@@ -23,3 +23,6 @@
 **/SpotifyPopup.settings.json
 **/SpotifyPopup.settings.json.tmp
 /test-results/
+
+# Local working documents and task plans
+/.work/
