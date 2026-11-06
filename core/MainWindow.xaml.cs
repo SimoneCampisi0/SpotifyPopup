@@ -1,6 +1,8 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -57,7 +59,7 @@ public partial class MainWindow : Window
             ElapsedText.Text = Format(position); DurationText.Text = Format(duration);
             if (!Progress.IsMouseCaptureWithin) Progress.Value = duration.TotalSeconds > 0 ? Math.Clamp(position.TotalSeconds / duration.TotalSeconds * 100, 0, 100) : 0;
             Progress.IsEnabled = info.Controls.IsPlaybackPositionEnabled && duration > TimeSpan.Zero;
-            PlayButton.Content = info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing ? "❚❚" : "▶";
+            PlayButton.Content = info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing ? "\uE769" : "\uE768";
         }
         catch (Exception) { TitleText.Text = "Spotify non disponibile"; }
         finally { busy = false; }
@@ -67,24 +69,37 @@ public partial class MainWindow : Window
     private async void PreviousClick(object sender, RoutedEventArgs e) { if (session != null) { await session.TrySkipPreviousAsync(); await Refresh(); } }
     private async void NextClick(object sender, RoutedEventArgs e) { if (session != null) { await session.TrySkipNextAsync(); await Refresh(); } }
     private async void Seek(object sender, MouseButtonEventArgs e) { if (session != null && Progress.IsEnabled) { var t = session.GetTimelineProperties(); await session.TryChangePlaybackPositionAsync((long)(t.StartTime.Ticks + (t.EndTime - t.StartTime).Ticks * Progress.Value / 100)); } }
-    private void OnDrag(object sender, MouseButtonEventArgs e) { if (e.OriginalSource is FrameworkElement el && el is not System.Windows.Controls.Button && e.ButtonState == MouseButtonState.Pressed && !locked) DragMove(); }
+    private void OnDrag(object sender, MouseButtonEventArgs e)
+    {
+        if (locked || e.ButtonState != MouseButtonState.Pressed) return;
+        for (DependencyObject? element = e.OriginalSource as DependencyObject; element != null && element != RootSurface; element = VisualTreeHelper.GetParent(element))
+        {
+            if (element is ButtonBase or Slider or Thumb or ResizeGrip) return;
+        }
+        DragMove();
+    }
     private void LockClick(object sender, RoutedEventArgs e) => SetLocked(true);
     private void SetLocked(bool value)
     {
         locked = value; Opacity = value ? 0.58 : 1;
+        ToolTipService.SetIsEnabled(TitleText, !value);
+        if (value && TitleText.ToolTip is ToolTip titleToolTip) titleToolTip.IsOpen = false;
         var h = new WindowInteropHelper(this).Handle; var style = GetWindowLong(h, -20); SetWindowLong(h, -20, value ? style | 0x20 : style & ~0x20);
         if (value)
         {
-            var button = new System.Windows.Controls.Button { Content = "🔓", ToolTip = "Sblocca Spotify Popup", Background = Brushes.White, BorderThickness = new Thickness(0), FontSize = 15 };
-            unlock = new Window { Width = 31, Height = 31, WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false, Topmost = true, Content = button, Owner = this };
+            var button = new Button { Content = "\uE785", ToolTip = "Sblocca Spotify Popup", FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 15, Background = new SolidColorBrush(Color.FromArgb(240, 39, 57, 52)), Foreground = Brushes.White, Style = (Style)FindResource("GlassButton") };
+            System.Windows.Automation.AutomationProperties.SetName(button, "Sblocca Spotify Popup");
+            unlock = new Window { Width = 32, Height = 32, WindowStyle = WindowStyle.None, AllowsTransparency = true, Background = Brushes.Transparent, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false, Topmost = true, Content = button, Owner = this };
             button.Click += (_, _) => SetLocked(false); PositionUnlock(); unlock.Show();
         }
         else { unlock?.Close(); unlock = null; }
     }
-    private void PositionUnlock() { if (unlock != null) { unlock.Left = Left + Width - 36; unlock.Top = Top + 8; } }
+    private void PositionUnlock() { if (unlock != null) { unlock.Left = Left + ActualWidth - 51; unlock.Top = Top + 11; } }
     private void OnLocationChanged(object? sender, EventArgs e) => PositionUnlock();
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e) => PositionUnlock();
     private void ExitClick(object sender, RoutedEventArgs e) => Close();
     private void OnClosed(object? sender, EventArgs e) { timer.Stop(); unlock?.Close(); }
 }
+
 
 

@@ -9,5 +9,10 @@ $env:TMP = $env:TEMP
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 $env:DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE = 'true'
 New-Item -ItemType Directory -Force -Path $env:TEMP | Out-Null
-dotnet build SpotifyPopup\SpotifyPopup.csproj -p:NuGetAudit=false
+
+dotnet publish core\SpotifyPopup.csproj -c Release -r win-x64 --self-contained true `
+    -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:DebugType=none -p:DebugSymbols=false -p:NuGetAudit=false `
+    -o core\bin\publish\win-x64
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
