@@ -45,17 +45,17 @@
   </Style>
   <DataTemplate x:Key="TrackInfo">
    <StackPanel VerticalAlignment="Center">
-    <TextBlock Text="{Binding Player.Status}" Foreground="#A8D5C6" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,4"/>
-    <TextBlock Text="{Binding Player.Title}" Style="{StaticResource MetadataText}" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
-    <TextBlock Text="{Binding Player.Artist}" Style="{StaticResource MetadataText}" FontSize="12" Margin="0,4,0,0"/>
-    <TextBlock Text="{Binding Player.Album}" Style="{StaticResource MetadataText}" Foreground="#ACCDC0" FontSize="11" Margin="0,3,0,0" Visibility="{Binding AlbumVisibility}"/>
+    <TextBlock Text="{Binding Status}" Foreground="#A8D5C6" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,4"/>
+    <TextBlock Text="{Binding Title}" Style="{StaticResource MetadataText}" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
+    <TextBlock Text="{Binding Artist}" Style="{StaticResource MetadataText}" FontSize="12" Margin="0,4,0,0"/>
+    <TextBlock Text="{Binding Album}" Style="{StaticResource MetadataText}" Foreground="#ACCDC0" FontSize="11" Margin="0,3,0,0" Visibility="{Binding AlbumVisibility, RelativeSource={RelativeSource AncestorType=Window}}"/>
    </StackPanel>
   </DataTemplate>
   <DataTemplate x:Key="CoverArt">
    <Grid Width="74" Height="74">
     <Border CornerRadius="11" Background="#455F5553"/>
     <TextBlock Text="♪" FontSize="29" Foreground="#9DD7C4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-    <Image Source="{Binding Player.Artwork}" Stretch="UniformToFill"><Image.Clip><RectangleGeometry Rect="0,0,74,74" RadiusX="11" RadiusY="11"/></Image.Clip></Image>
+    <Image Source="{Binding Artwork}" Stretch="UniformToFill"><Image.Clip><RectangleGeometry Rect="0,0,74,74" RadiusX="11" RadiusY="11"/></Image.Clip></Image>
    </Grid>
   </DataTemplate>
  </Window.Resources>
@@ -81,8 +81,8 @@
     <Grid Width="350" Height="205">
      <Grid.RowDefinitions><RowDefinition Height="90"/><RowDefinition Height="37"/><RowDefinition Height="53"/><RowDefinition Height="25"/></Grid.RowDefinitions>
      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="88"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-      <ContentControl Content="{Binding}" ContentTemplate="{StaticResource CoverArt}" HorizontalAlignment="Left"/>
-      <ContentControl Grid.Column="1" Content="{Binding}" ContentTemplate="{StaticResource TrackInfo}"/>
+      <ContentControl Content="{Binding Player}" ContentTemplate="{StaticResource CoverArt}" HorizontalAlignment="Left"/>
+      <ContentControl Grid.Column="1" Content="{Binding Player}" ContentTemplate="{StaticResource TrackInfo}"/>
      </Grid>
      <Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
       <TextBlock x:Name="NormalElapsed" Text="{Binding Player.Elapsed}" Foreground="#C2DFD2" FontSize="11" VerticalAlignment="Center"/>
@@ -105,7 +105,7 @@
    <Grid x:Name="CompactLayout" Grid.Row="1" Visibility="Collapsed">
     <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="28"/></Grid.RowDefinitions>
     <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/><ColumnDefinition Width="128"/></Grid.ColumnDefinitions>
-     <Viewbox Width="44" Height="44" HorizontalAlignment="Left"><ContentControl Content="{Binding}" ContentTemplate="{StaticResource CoverArt}"/></Viewbox>
+     <Viewbox Width="44" Height="44" HorizontalAlignment="Left"><ContentControl Content="{Binding Player}" ContentTemplate="{StaticResource CoverArt}"/></Viewbox>
      <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
       <TextBlock Text="{Binding Player.Title}" Style="{StaticResource MetadataText}" Foreground="White" FontSize="12" FontWeight="SemiBold"/>
       <TextBlock Text="{Binding Player.Artist}" Style="{StaticResource MetadataText}" FontSize="10" Margin="0,2,0,0"/>
