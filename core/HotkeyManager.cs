@@ -15,8 +15,8 @@ internal sealed class HotkeyManager : IDisposable
     internal bool TryApply(string toggleValue, string unlockValue, out string error)
     {
         if (!Parse(toggleValue, out var tm, out var tk) || !Parse(unlockValue, out var um, out var uk))
-        { error = "Choose a key with Ctrl, Alt, Shift or Win (for example Ctrl+Alt+P)."; return false; }
-        if (tm == um && tk == uk) { error = "Show/hide and unlock must use different shortcuts."; return false; }
+        { error = TextKeys.ShortcutInvalid; return false; }
+        if (tm == um && tk == uk) { error = TextKeys.ShortcutDuplicate; return false; }
         if (toggleValue == toggle && unlockValue == unlock) { error = ""; return true; }
         var oldToggle = toggle; var oldUnlock = unlock;
         Unregister();
@@ -27,7 +27,7 @@ internal sealed class HotkeyManager : IDisposable
         if (Parse(oldToggle, out tm, out tk)) NativeMethods.RegisterHotKey(source.Handle, ToggleId, tm | 0x4000, tk);
         if (Parse(oldUnlock, out um, out uk)) NativeMethods.RegisterHotKey(source.Handle, UnlockId, um | 0x4000, uk);
         toggle = oldToggle; unlock = oldUnlock;
-        error = "A shortcut is already in use. Choose another combination."; return false;
+        error = TextKeys.ShortcutBusy; return false;
     }
     internal static bool Parse(string text, out uint modifiers, out uint key)
     {

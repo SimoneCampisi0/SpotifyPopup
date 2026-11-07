@@ -33,7 +33,7 @@ public sealed class MediaController : IMediaController
             manager.CurrentSessionChanged += CurrentSessionChanged;
             await RefreshAsync(true);
         }
-        catch (Exception) { Reset("Media controls unavailable"); }
+        catch (Exception) { Reset(TextKeys.MediaUnavailable); }
         finally { initializing = false; }
     }
     private void SessionsChanged(GlobalSystemMediaTransportControlsSessionManager sender, SessionsChangedEventArgs args) => QueueRefresh(true);
@@ -84,7 +84,7 @@ public sealed class MediaController : IMediaController
                 var selected = manager.GetSessions().FirstOrDefault(s => s.SourceAppUserModelId.Contains("Spotify", StringComparison.OrdinalIgnoreCase));
                 Attach(selected);
                 var target = session; var token = generation;
-                if (target == null) { Reset("Spotify unavailable"); continue; }
+                if (target == null) { Reset(TextKeys.SpotifyUnavailable); continue; }
                 var readMetadata = metadataDirty;
                 metadataDirty = false;
                 if (readMetadata)
@@ -96,7 +96,7 @@ public sealed class MediaController : IMediaController
                     if (trackChanged) { artworkPending = true; nextArtworkAttempt = DateTimeOffset.MinValue; }
                     Publish(Snapshot with
                     {
-                        Title = string.IsNullOrWhiteSpace(props.Title) ? "Unknown track" : props.Title,
+                        Title = props.Title ?? "", TitleFallbackKey = TextKeys.UnknownTrack,
                         Artist = props.Artist ?? "", Album = props.AlbumTitle ?? "", TrackKey = key,
                         Artwork = trackChanged ? null : Snapshot.Artwork
                     });
@@ -126,7 +126,7 @@ public sealed class MediaController : IMediaController
         catch (Exception)
         {
             Detach(); generation++; playback = null; timeline = null;
-            Reset("Spotify unavailable");
+            Reset(TextKeys.SpotifyUnavailable);
         }
         finally { refreshing = false; }
     }
@@ -140,10 +140,10 @@ public sealed class MediaController : IMediaController
             (DateTimeOffset.UtcNow - timeline.LastUpdatedTime).TotalSeconds, playback.PlaybackRate ?? 1, playing);
         var status = playback.PlaybackStatus switch
         {
-            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing => "Playing",
-            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused => "Paused",
-            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped => "Stopped",
-            _ => "Ready"
+            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing => TextKeys.Playing,
+            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused => TextKeys.Paused,
+            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped => TextKeys.Stopped,
+            _ => TextKeys.Ready
         };
         Publish(Snapshot with
         {
@@ -180,33 +180,33 @@ public sealed class MediaController : IMediaController
                     if (controls.IsPlayPauseToggleEnabled) accepted = await target.TryTogglePlayPauseAsync();
                     else if (info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing && controls.IsPauseEnabled) accepted = await target.TryPauseAsync();
                     else if (info.PlaybackStatus != GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing && controls.IsPlayEnabled) accepted = await target.TryPlayAsync();
-                    else { Report("Playback control is unavailable for this track."); return; }
+                    else { Report(TextKeys.PlaybackUnavailable); return; }
                     break;
                 case MediaAction.Previous:
-                    if (!controls.IsPreviousEnabled) { Report("Previous track is unavailable."); return; }
+                    if (!controls.IsPreviousEnabled) { Report(TextKeys.PreviousUnavailable); return; }
                     accepted = await target.TrySkipPreviousAsync(); break;
                 case MediaAction.Next:
-                    if (!controls.IsNextEnabled) { Report("Next track is unavailable."); return; }
+                    if (!controls.IsNextEnabled) { Report(TextKeys.NextUnavailable); return; }
                     accepted = await target.TrySkipNextAsync(); break;
                 default:
                     var properties = await target.TryGetMediaPropertiesAsync();
                     var key = properties.Title + "\n" + properties.Artist + "\n" + properties.AlbumTitle;
                     if (disposed || token != generation || target != session || (expectedTrackKey != null && expectedTrackKey != key))
-                    { Report("The track changed. Please choose the position again."); return; }
+                    { Report(TextKeys.TrackChanged); return; }
                     var currentTimeline = target.GetTimelineProperties();
                     var duration = currentTimeline.EndTime - currentTimeline.StartTime;
-                    if (!controls.IsPlaybackPositionEnabled || duration <= TimeSpan.Zero) { Report("Seeking is unavailable for this track."); return; }
+                    if (!controls.IsPlaybackPositionEnabled || duration <= TimeSpan.Zero) { Report(TextKeys.SeekUnavailable); return; }
                     accepted = await target.TryChangePlaybackPositionAsync(PlaybackMath.SeekTicks(currentTimeline.StartTime.Ticks, duration.Ticks, fraction));
                     break;
             }
-            if (!disposed && token == generation && target == session && !accepted) Report("Spotify did not accept the command. Please try again.");
+            if (!disposed && token == generation && target == session && !accepted) Report(TextKeys.CommandRejected);
         }
         catch (Exception)
         {
             if (!disposed)
             {
-                Detach(); generation++; playback = null; timeline = null; Reset("Spotify unavailable");
-                Report("Spotify could not be reached. Reconnecting automatically.");
+                Detach(); generation++; playback = null; timeline = null; Reset(TextKeys.SpotifyUnavailable);
+                Report(TextKeys.Reconnecting);
             }
         }
         finally { commandPending = false; if (!disposed) await RefreshAsync(true); }

@@ -1,0 +1,17 @@
+Spotify Popup v1.2.0 - English and Italian
+
+- Choose System / Sistema, English or Italiano in Settings / Impostazioni.
+- System detects the Windows UI language: Italian for it cultures, English otherwise.
+- Save / Salva applies the language immediately, without restarting the player. Cancel / Annulla keeps the previous selection.
+- Translate playback labels, connection states, errors, tooltips, accessibility names, context menus, tray menus and the unlock helper.
+- Keep Spotify titles, artists, albums, track identity and shortcuts unchanged.
+- Preserve existing preferences when upgrading. Older or invalid language settings default to System.
+- Fit settings at minimum width, wrap longer notices and allow extra height in compact mode.
+- Include all translations in the single self-contained executable; no external language files or new dependencies.
+
+Scarica SpotifyPopup.exe e scegli la lingua in Impostazioni. La traduzione viene applicata premendo Salva.
+
+Verification: 173 logic checks and 68 isolated Windows UI checks, including resource/placeholder parity, fallback, settings migration, Save/Cancel, persistence failures, live translation, tray entries, lock/unlock and metadata preservation. Clean single-file startup/shutdown, icon and persisted preferences checked with en, it and auto.
+Interactive testing with a live Spotify session and a screen reader was not completed; playback UI tests use a simulated controller and issue no real Spotify commands.
+
+Download SpotifyPopup.exe for 64-bit Windows 10 version 2004 or later, or Windows 11. No separate .NET installation is needed. Native runtime components extract to the temporary directory at startup.

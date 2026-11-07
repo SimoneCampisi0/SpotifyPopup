@@ -23,7 +23,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private HwndSource? source;
     private HotkeyManager? hotkeys;
     private Forms.NotifyIcon? tray;
-    private Forms.ToolStripMenuItem? trayVisibility, trayLock;
+    private Forms.ToolStripMenuItem? trayVisibility, trayLock, traySettings, trayExit;
     private System.Drawing.Icon? trayIcon;
     private Window? unlock;
     private SettingsWindow? settingsWindow;
@@ -42,10 +42,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public MainWindow(IMediaController? controller, SettingsStore? settingsStore, bool enableShell)
     {
         this.enableShell = enableShell; store = settingsStore ?? new SettingsStore(); settings = store.Load(out startupWarning);
+        Localizer.Current.Apply(settings.Language);
         InitializeComponent(); DataContext = this;
+        Localizer.Current.PropertyChanged += LanguageChanged;
         media = controller ?? new MediaController(Dispatcher);
         media.Updated += OnMediaUpdated; media.Notice += OnNotice;
-        Player.PropertyChanged += (_, _) => { MinHeight = settings.CompactMode ? (string.IsNullOrEmpty(Player.Notice) ? 138 : 166) : 255; Changed(); };
+        Player.PropertyChanged += (_, _) => { MinHeight = settings.CompactMode ? (string.IsNullOrEmpty(Player.Notice) ? 138 : 190) : 255; Changed(); };
         ApplyLayout();
         timer.Tick += (_, _) =>
         {
@@ -55,6 +57,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveSettings(); };
     }
     private void Changed() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+    private void LanguageChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        UpdateTray();
+        if (unlock?.Content is Button button)
+        {
+            button.ToolTip = Localizer.Get(TextKeys.UnlockPopup);
+            System.Windows.Automation.AutomationProperties.SetName(button, Localizer.Get(TextKeys.UnlockPopup));
+        }
+        PositionUnlock();
+    }
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
@@ -62,7 +74,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (enableShell && source != null)
         {
             hotkeys = new HotkeyManager(source, ToggleVisibility, () => { SetLocked(false); ShowPopup(); });
-            if (!hotkeys.TryApply(settings.ToggleShortcut, settings.UnlockShortcut, out var error)) startupWarning = error + " Open Settings to change your shortcuts.";
+            if (!hotkeys.TryApply(settings.ToggleShortcut, settings.UnlockShortcut, out var error)) startupWarning = error;
         }
     }
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -72,7 +84,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (startupWarning != null) ShowNotice(startupWarning);
         timer.Start();
         try { await media.InitializeAsync(); }
-        catch (Exception) { OnMediaUpdated(this, new MediaSnapshot { Status = "Media controls unavailable" }); }
+        catch (Exception) { OnMediaUpdated(this, new MediaSnapshot { Status = TextKeys.MediaUnavailable }); }
     }
     private void OnMediaUpdated(object? sender, MediaSnapshot snapshot)
     {
@@ -103,7 +115,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (closed || runningCommand) return;
         runningCommand = true; Player.SetWorking(true);
         try { await media.ExecuteAsync(action, fraction, key); }
-        catch (Exception) { ShowNotice("The command could not be completed. Please try again."); }
+        catch (Exception) { ShowNotice(TextKeys.CommandFailed); }
         finally { runningCommand = false; if (!closed) { Player.SetWorking(false); UpdateProgress(media.Snapshot); } }
     }
     private async void PlayClick(object sender, RoutedEventArgs e) => await RunCommand(MediaAction.PlayPause);
@@ -172,8 +184,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         NativeMethods.SetWindowLong(handle, NativeMethods.GwlExStyle, value ? style | mask : style & ~mask);
         if (value)
         {
-            var button = new Button { Content = "\uE785", ToolTip = "Unlock Spotify Popup", Style = (Style)FindResource("GlassButton"), Width = 32, Height = 32, Background = new SolidColorBrush(Color.FromRgb(39, 57, 52)) };
-            System.Windows.Automation.AutomationProperties.SetName(button, "Unlock Spotify Popup");
+            var button = new Button { Content = "\uE785", ToolTip = Localizer.Get(TextKeys.UnlockPopup), Style = (Style)FindResource("GlassButton"), Width = 32, Height = 32, Background = new SolidColorBrush(Color.FromRgb(39, 57, 52)) };
+            System.Windows.Automation.AutomationProperties.SetName(button, Localizer.Get(TextKeys.UnlockPopup));
             unlock = new Window { Width = 32, Height = 32, WindowStyle = WindowStyle.None, AllowsTransparency = true, Background = Brushes.Transparent,
                 ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false, ShowActivated = false, Topmost = true, Content = button, Owner = this };
             button.Click += (_, _) => SetLocked(false);
@@ -207,7 +219,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void ApplyLayout()
     {
         var compact = settings.CompactMode;
-        MinWidth = compact ? 360 : 330; MinHeight = compact ? (string.IsNullOrEmpty(Player.Notice) ? 138 : 166) : 255;
+        MinWidth = compact ? 360 : 330; MinHeight = compact ? (string.IsNullOrEmpty(Player.Notice) ? 138 : 190) : 255;
         NormalLayout.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         CompactLayout.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
         Width = Math.Max(MinWidth, Placement.Width); Height = Math.Max(MinHeight, Placement.Height);
@@ -231,7 +243,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void SaveSettings()
     {
         CapturePlacement();
-        if (!store.Save(settings)) ShowNotice("Settings could not be saved. Move the app to a writable folder to remember your preferences.");
+        if (!store.Save(settings)) ShowNotice(TextKeys.SettingsSaveFailed);
     }
     private void OnDisplaySettingsChanged(object? sender, EventArgs e) => Dispatcher.BeginInvoke(new Action(() => { if (!closed) { NativeMethods.EnsureVisible(this); PositionUnlock(); QueueSave(); } }));
     private IntPtr WindowHook(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -248,22 +260,26 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             using var embeddedIcon = new System.Drawing.Icon(stream);
             trayIcon = (System.Drawing.Icon)embeddedIcon.Clone();
             var menu = new Forms.ContextMenuStrip();
-            trayVisibility = new Forms.ToolStripMenuItem("Hide", null, (_, _) => Dispatch(ToggleVisibility));
-            trayLock = new Forms.ToolStripMenuItem("Lock", null, (_, _) => Dispatch(() => { SetLocked(!locked); ShowPopup(false); }));
+            trayVisibility = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Hide), null, (_, _) => Dispatch(ToggleVisibility));
+            trayLock = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Lock), null, (_, _) => Dispatch(() => { SetLocked(!locked); ShowPopup(false); }));
             menu.Items.Add(trayVisibility); menu.Items.Add(trayLock);
-            menu.Items.Add("Settings", null, (_, _) => Dispatch(OpenSettings));
-            menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add("Exit", null, (_, _) => Dispatch(Close));
+            traySettings = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Settings), null, (_, _) => Dispatch(OpenSettings));
+            trayExit = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Exit), null, (_, _) => Dispatch(Close));
+            menu.Items.Add(traySettings);
+            menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add(trayExit);
             tray = new Forms.NotifyIcon { Text = "Spotify Popup", Icon = trayIcon, ContextMenuStrip = menu, Visible = true };
             tray.DoubleClick += (_, _) => Dispatch(() => ShowPopup());
             UpdateTray();
         }
-        catch (Exception) { ShowNotice("The notification icon could not be created. Keyboard shortcuts are still available."); }
+        catch (Exception) { ShowNotice(TextKeys.TrayFailed); }
     }
     private void Dispatch(Action action) { if (!closed) Dispatcher.BeginInvoke(action); }
     private void UpdateTray()
     {
-        if (trayVisibility != null) trayVisibility.Text = IsVisible ? "Hide" : "Show";
-        if (trayLock != null) trayLock.Text = locked ? "Unlock" : "Lock";
+        if (trayVisibility != null) trayVisibility.Text = IsVisible ? Localizer.Get(TextKeys.Hide) : Localizer.Get(TextKeys.Show);
+        if (trayLock != null) trayLock.Text = locked ? Localizer.Get(TextKeys.Unlock) : Localizer.Get(TextKeys.Lock);
+        if (traySettings != null) traySettings.Text = Localizer.Get(TextKeys.Settings);
+        if (trayExit != null) trayExit.Text = Localizer.Get(TextKeys.Exit);
     }
     private void ToggleVisibility()
     {
@@ -296,6 +312,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             {
                 settings.ShowAlbum = dialog.ShowAlbum; settings.SnapToEdges = dialog.SnapToEdges;
                 settings.LockedOpacity = dialog.LockedOpacity; settings.ToggleShortcut = dialog.ToggleShortcut; settings.UnlockShortcut = dialog.UnlockShortcut;
+                settings.Language = dialog.SelectedLanguage; Localizer.Current.Apply(settings.Language);
                 Changed(); SaveSettings();
             }
             else settings.LockedOpacity = originalOpacity;
@@ -305,7 +322,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void OpenSpotifyClick(object sender, RoutedEventArgs e)
     {
         try { Process.Start(new ProcessStartInfo("spotify:") { UseShellExecute = true }); }
-        catch (Exception) { ShowNotice("Spotify could not be opened. Install or open the Spotify desktop app, then play a track."); }
+        catch (Exception) { ShowNotice(TextKeys.SpotifyOpenFailed); }
     }
     private void ExitClick(object sender, RoutedEventArgs e) => Close();
     private void OnClosed(object? sender, EventArgs e)
@@ -313,6 +330,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (closed) return;
         CapturePlacement(); store.Save(settings); closed = true;
         timer.Stop(); saveTimer.Stop(); media.Updated -= OnMediaUpdated; media.Notice -= OnNotice; media.Dispose();
+        Localizer.Current.PropertyChanged -= LanguageChanged; Player.Dispose();
         if (enableShell) SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         hotkeys?.Dispose(); source?.RemoveHook(WindowHook); unlock?.Close();
         if (tray != null) { tray.Visible = false; tray.ContextMenuStrip?.Dispose(); tray.Dispose(); }

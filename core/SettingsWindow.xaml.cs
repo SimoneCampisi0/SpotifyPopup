@@ -12,25 +12,33 @@ public partial class SettingsWindow : Window
     public double LockedOpacity => OpacitySlider.Value / 100;
     public string ToggleShortcut => ToggleBox.Text.Trim();
     public string UnlockShortcut => UnlockBox.Text.Trim();
+    public string SelectedLanguage => Localizer.Normalize(LanguageBox.SelectedValue as string);
+    private string errorKey = "";
     public SettingsWindow(AppSettings settings, Action<double> preview, Func<string, string, string?> validate)
     {
         this.preview = preview; this.validate = validate;
         InitializeComponent();
+        LanguageBox.SelectedValue = settings.Language;
+        Localizer.Current.PropertyChanged += LanguageChanged;
+        Closed += (_, _) => Localizer.Current.PropertyChanged -= LanguageChanged;
         ShowAlbumBox.IsChecked = settings.ShowAlbum; SnapBox.IsChecked = settings.SnapToEdges;
-        OpacitySlider.Value = settings.LockedOpacity * 100; OpacityValue.Text = $"{OpacitySlider.Value:0}%";
+        OpacitySlider.Value = settings.LockedOpacity * 100; UpdateOpacity();
         ToggleBox.Text = settings.ToggleShortcut; UnlockBox.Text = settings.UnlockShortcut;
         ready = true;
     }
     private void OpacityChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (!ready) return;
-        OpacityValue.Text = $"{OpacitySlider.Value:0}%"; preview(LockedOpacity);
+        UpdateOpacity(); preview(LockedOpacity);
     }
     private void SaveClick(object sender, RoutedEventArgs e)
     {
         var error = validate(ToggleShortcut, UnlockShortcut);
-        if (error != null) { ErrorText.Text = error; return; }
+        errorKey = error ?? ""; ErrorText.Text = Localizer.Get(errorKey);
+        if (error != null) return;
         DialogResult = true;
     }
     private void CancelClick(object sender, RoutedEventArgs e) => DialogResult = false;
+    private void LanguageChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) => ErrorText.Text = Localizer.Get(errorKey);
+    private void UpdateOpacity() => OpacityValue.Text = OpacitySlider.Value.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + "%";
 }

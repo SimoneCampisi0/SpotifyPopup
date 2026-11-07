@@ -8,7 +8,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>1.1.1</Version>
+    <Version>1.2.0</Version>
+    <NeutralLanguage>en</NeutralLanguage>
     <ApplicationIcon>..\assets\logo.ico</ApplicationIcon>
   </PropertyGroup>
 

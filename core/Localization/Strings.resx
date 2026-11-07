@@ -1,0 +1,173 @@
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Spotify Popup settings</value>
+  </data>
+  <data name="SettingsHeading" xml:space="preserve">
+    <value>Make it yours</value>
+  </data>
+  <data name="ShowAlbum" xml:space="preserve">
+    <value>Show album</value>
+  </data>
+  <data name="SnapEdges" xml:space="preserve">
+    <value>Snap to screen edges</value>
+  </data>
+  <data name="LockedOpacity" xml:space="preserve">
+    <value>Locked opacity</value>
+  </data>
+  <data name="OpacityHint" xml:space="preserve">
+    <value>Preview appears on the popup. Unlock stays visible.</value>
+  </data>
+  <data name="ToggleShortcut" xml:space="preserve">
+    <value>Show / hide shortcut</value>
+  </data>
+  <data name="UnlockShortcut" xml:space="preserve">
+    <value>Unlock and show shortcut</value>
+  </data>
+  <data name="ShortcutHint" xml:space="preserve">
+    <value>Example: Ctrl+Alt+P. Shortcuts must be different.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language / Lingua</value>
+  </data>
+  <data name="LanguageHint" xml:space="preserve">
+    <value>Applied when you save. Cancel keeps the current language.</value>
+  </data>
+  <data name="SystemLanguage" xml:space="preserve">
+    <value>System / Sistema</value>
+  </data>
+  <data name="Hide" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="Show" xml:space="preserve">
+    <value>Show</value>
+  </data>
+  <data name="SwitchLayout" xml:space="preserve">
+    <value>Switch layout</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="ExitPopup" xml:space="preserve">
+    <value>Exit Spotify Popup</value>
+  </data>
+  <data name="SwitchLayoutHint" xml:space="preserve">
+    <value>Switch normal / compact layout</value>
+  </data>
+  <data name="LockPopup" xml:space="preserve">
+    <value>Lock popup</value>
+  </data>
+  <data name="UnlockPopup" xml:space="preserve">
+    <value>Unlock Spotify Popup</value>
+  </data>
+  <data name="TrackPosition" xml:space="preserve">
+    <value>Track position</value>
+  </data>
+  <data name="RestartTrack" xml:space="preserve">
+    <value>Restart track</value>
+  </data>
+  <data name="PreviousTrack" xml:space="preserve">
+    <value>Previous track</value>
+  </data>
+  <data name="NextTrack" xml:space="preserve">
+    <value>Next track</value>
+  </data>
+  <data name="OpenSpotify" xml:space="preserve">
+    <value>Open Spotify</value>
+  </data>
+  <data name="Lock" xml:space="preserve">
+    <value>Lock</value>
+  </data>
+  <data name="Unlock" xml:space="preserve">
+    <value>Unlock</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="OpenSpotifyPrompt" xml:space="preserve">
+    <value>Open Spotify and play a track</value>
+  </data>
+  <data name="SpotifyUnavailable" xml:space="preserve">
+    <value>Spotify unavailable</value>
+  </data>
+  <data name="MediaUnavailable" xml:space="preserve">
+    <value>Media controls unavailable</value>
+  </data>
+  <data name="UnknownTrack" xml:space="preserve">
+    <value>Unknown track</value>
+  </data>
+  <data name="Playing" xml:space="preserve">
+    <value>Playing</value>
+  </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>Stopped</value>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="PlaybackUnavailable" xml:space="preserve">
+    <value>Playback control is unavailable for this track.</value>
+  </data>
+  <data name="PreviousUnavailable" xml:space="preserve">
+    <value>Previous track is unavailable.</value>
+  </data>
+  <data name="NextUnavailable" xml:space="preserve">
+    <value>Next track is unavailable.</value>
+  </data>
+  <data name="TrackChanged" xml:space="preserve">
+    <value>The track changed. Please choose the position again.</value>
+  </data>
+  <data name="SeekUnavailable" xml:space="preserve">
+    <value>Seeking is unavailable for this track.</value>
+  </data>
+  <data name="CommandRejected" xml:space="preserve">
+    <value>Spotify did not accept the command. Please try again.</value>
+  </data>
+  <data name="Reconnecting" xml:space="preserve">
+    <value>Spotify could not be reached. Reconnecting automatically.</value>
+  </data>
+  <data name="CommandFailed" xml:space="preserve">
+    <value>The command could not be completed. Please try again.</value>
+  </data>
+  <data name="SettingsReadFailed" xml:space="preserve">
+    <value>Settings could not be read. Default settings are in use.</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>Settings could not be saved. Move the app to a writable folder to remember your preferences.</value>
+  </data>
+  <data name="TrayFailed" xml:space="preserve">
+    <value>The notification icon could not be created. Keyboard shortcuts are still available.</value>
+  </data>
+  <data name="SpotifyOpenFailed" xml:space="preserve">
+    <value>Spotify could not be opened. Install or open the Spotify desktop app, then play a track.</value>
+  </data>
+  <data name="ShortcutInvalid" xml:space="preserve">
+    <value>Choose a key with Ctrl, Alt, Shift or Win (for example Ctrl+Alt+P).</value>
+  </data>
+  <data name="ShortcutDuplicate" xml:space="preserve">
+    <value>Show/hide and unlock must use different shortcuts.</value>
+  </data>
+  <data name="ShortcutBusy" xml:space="preserve">
+    <value>A shortcut is already in use. Choose another combination.</value>
+  </data>
+</root>

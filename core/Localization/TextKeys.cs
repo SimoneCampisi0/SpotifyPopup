@@ -1,0 +1,61 @@
+namespace SpotifyPopup;
+
+// Stable resource identifiers; never persist translated text.
+public static class TextKeys
+{
+    public const string SettingsTitle = "SettingsTitle";
+    public const string SettingsHeading = "SettingsHeading";
+    public const string ShowAlbum = "ShowAlbum";
+    public const string SnapEdges = "SnapEdges";
+    public const string LockedOpacity = "LockedOpacity";
+    public const string OpacityHint = "OpacityHint";
+    public const string ToggleShortcut = "ToggleShortcut";
+    public const string UnlockShortcut = "UnlockShortcut";
+    public const string ShortcutHint = "ShortcutHint";
+    public const string Cancel = "Cancel";
+    public const string Save = "Save";
+    public const string Language = "Language";
+    public const string LanguageHint = "LanguageHint";
+    public const string SystemLanguage = "SystemLanguage";
+    public const string Hide = "Hide";
+    public const string Show = "Show";
+    public const string SwitchLayout = "SwitchLayout";
+    public const string Settings = "Settings";
+    public const string Exit = "Exit";
+    public const string ExitPopup = "ExitPopup";
+    public const string SwitchLayoutHint = "SwitchLayoutHint";
+    public const string LockPopup = "LockPopup";
+    public const string UnlockPopup = "UnlockPopup";
+    public const string TrackPosition = "TrackPosition";
+    public const string RestartTrack = "RestartTrack";
+    public const string PreviousTrack = "PreviousTrack";
+    public const string NextTrack = "NextTrack";
+    public const string OpenSpotify = "OpenSpotify";
+    public const string Lock = "Lock";
+    public const string Unlock = "Unlock";
+    public const string Play = "Play";
+    public const string Pause = "Pause";
+    public const string OpenSpotifyPrompt = "OpenSpotifyPrompt";
+    public const string SpotifyUnavailable = "SpotifyUnavailable";
+    public const string MediaUnavailable = "MediaUnavailable";
+    public const string UnknownTrack = "UnknownTrack";
+    public const string Playing = "Playing";
+    public const string Paused = "Paused";
+    public const string Stopped = "Stopped";
+    public const string Ready = "Ready";
+    public const string PlaybackUnavailable = "PlaybackUnavailable";
+    public const string PreviousUnavailable = "PreviousUnavailable";
+    public const string NextUnavailable = "NextUnavailable";
+    public const string TrackChanged = "TrackChanged";
+    public const string SeekUnavailable = "SeekUnavailable";
+    public const string CommandRejected = "CommandRejected";
+    public const string Reconnecting = "Reconnecting";
+    public const string CommandFailed = "CommandFailed";
+    public const string SettingsReadFailed = "SettingsReadFailed";
+    public const string SettingsSaveFailed = "SettingsSaveFailed";
+    public const string TrayFailed = "TrayFailed";
+    public const string SpotifyOpenFailed = "SpotifyOpenFailed";
+    public const string ShortcutInvalid = "ShortcutInvalid";
+    public const string ShortcutDuplicate = "ShortcutDuplicate";
+    public const string ShortcutBusy = "ShortcutBusy";
+}

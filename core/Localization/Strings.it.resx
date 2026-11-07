@@ -1,0 +1,173 @@
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Impostazioni di Spotify Popup</value>
+  </data>
+  <data name="SettingsHeading" xml:space="preserve">
+    <value>Personalizza il player</value>
+  </data>
+  <data name="ShowAlbum" xml:space="preserve">
+    <value>Mostra album</value>
+  </data>
+  <data name="SnapEdges" xml:space="preserve">
+    <value>Allinea ai bordi dello schermo</value>
+  </data>
+  <data name="LockedOpacity" xml:space="preserve">
+    <value>OpacitÃ  quando bloccato</value>
+  </data>
+  <data name="OpacityHint" xml:space="preserve">
+    <value>L'anteprima appare sul popup. Il pulsante Sblocca resta visibile.</value>
+  </data>
+  <data name="ToggleShortcut" xml:space="preserve">
+    <value>Scorciatoia mostra / nascondi</value>
+  </data>
+  <data name="UnlockShortcut" xml:space="preserve">
+    <value>Scorciatoia sblocca e mostra</value>
+  </data>
+  <data name="ShortcutHint" xml:space="preserve">
+    <value>Esempio: Ctrl+Alt+P. Le scorciatoie devono essere diverse.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Salva</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Lingua / Language</value>
+  </data>
+  <data name="LanguageHint" xml:space="preserve">
+    <value>La lingua cambia premendo Salva. Annulla mantiene la lingua attuale.</value>
+  </data>
+  <data name="SystemLanguage" xml:space="preserve">
+    <value>Sistema / System</value>
+  </data>
+  <data name="Hide" xml:space="preserve">
+    <value>Nascondi</value>
+  </data>
+  <data name="Show" xml:space="preserve">
+    <value>Mostra</value>
+  </data>
+  <data name="SwitchLayout" xml:space="preserve">
+    <value>Cambia vista</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Esci</value>
+  </data>
+  <data name="ExitPopup" xml:space="preserve">
+    <value>Chiudi Spotify Popup</value>
+  </data>
+  <data name="SwitchLayoutHint" xml:space="preserve">
+    <value>Passa alla vista normale / compatta</value>
+  </data>
+  <data name="LockPopup" xml:space="preserve">
+    <value>Blocca popup</value>
+  </data>
+  <data name="UnlockPopup" xml:space="preserve">
+    <value>Sblocca Spotify Popup</value>
+  </data>
+  <data name="TrackPosition" xml:space="preserve">
+    <value>Posizione nel brano</value>
+  </data>
+  <data name="RestartTrack" xml:space="preserve">
+    <value>Ricomincia il brano</value>
+  </data>
+  <data name="PreviousTrack" xml:space="preserve">
+    <value>Brano precedente</value>
+  </data>
+  <data name="NextTrack" xml:space="preserve">
+    <value>Brano successivo</value>
+  </data>
+  <data name="OpenSpotify" xml:space="preserve">
+    <value>Apri Spotify</value>
+  </data>
+  <data name="Lock" xml:space="preserve">
+    <value>Blocca</value>
+  </data>
+  <data name="Unlock" xml:space="preserve">
+    <value>Sblocca</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>Riproduci</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pausa</value>
+  </data>
+  <data name="OpenSpotifyPrompt" xml:space="preserve">
+    <value>Apri Spotify e riproduci un brano</value>
+  </data>
+  <data name="SpotifyUnavailable" xml:space="preserve">
+    <value>Spotify non disponibile</value>
+  </data>
+  <data name="MediaUnavailable" xml:space="preserve">
+    <value>Controlli multimediali non disponibili</value>
+  </data>
+  <data name="UnknownTrack" xml:space="preserve">
+    <value>Brano sconosciuto</value>
+  </data>
+  <data name="Playing" xml:space="preserve">
+    <value>In riproduzione</value>
+  </data>
+  <data name="Paused" xml:space="preserve">
+    <value>In pausa</value>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>Riproduzione interrotta</value>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>Pronto</value>
+  </data>
+  <data name="PlaybackUnavailable" xml:space="preserve">
+    <value>Il controllo di riproduzione non Ã¨ disponibile per questo brano.</value>
+  </data>
+  <data name="PreviousUnavailable" xml:space="preserve">
+    <value>Il brano precedente non Ã¨ disponibile.</value>
+  </data>
+  <data name="NextUnavailable" xml:space="preserve">
+    <value>Il brano successivo non Ã¨ disponibile.</value>
+  </data>
+  <data name="TrackChanged" xml:space="preserve">
+    <value>Il brano Ã¨ cambiato. Scegli di nuovo la posizione.</value>
+  </data>
+  <data name="SeekUnavailable" xml:space="preserve">
+    <value>Non Ã¨ possibile cambiare posizione in questo brano.</value>
+  </data>
+  <data name="CommandRejected" xml:space="preserve">
+    <value>Spotify non ha accettato il comando. Riprova.</value>
+  </data>
+  <data name="Reconnecting" xml:space="preserve">
+    <value>Impossibile comunicare con Spotify. Riconnessione automatica in corso.</value>
+  </data>
+  <data name="CommandFailed" xml:space="preserve">
+    <value>Impossibile completare il comando. Riprova.</value>
+  </data>
+  <data name="SettingsReadFailed" xml:space="preserve">
+    <value>Impossibile leggere le impostazioni. Sono in uso quelle predefinite.</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>Impossibile salvare le impostazioni. Sposta l'app in una cartella scrivibile per conservare le preferenze.</value>
+  </data>
+  <data name="TrayFailed" xml:space="preserve">
+    <value>Impossibile creare l'icona nell'area di notifica. Le scorciatoie da tastiera restano disponibili.</value>
+  </data>
+  <data name="SpotifyOpenFailed" xml:space="preserve">
+    <value>Impossibile aprire Spotify. Installa o apri l'app desktop di Spotify e riproduci un brano.</value>
+  </data>
+  <data name="ShortcutInvalid" xml:space="preserve">
+    <value>Scegli un tasto con Ctrl, Alt, Shift o Win (per esempio Ctrl+Alt+P).</value>
+  </data>
+  <data name="ShortcutDuplicate" xml:space="preserve">
+    <value>Mostra/nascondi e sblocca devono usare scorciatoie diverse.</value>
+  </data>
+  <data name="ShortcutBusy" xml:space="preserve">
+    <value>Una scorciatoia Ã¨ giÃ  in uso. Scegli un'altra combinazione.</value>
+  </data>
+</root>

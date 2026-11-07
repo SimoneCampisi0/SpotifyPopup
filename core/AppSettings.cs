@@ -20,9 +20,11 @@ public sealed class AppSettings
     public double LockedOpacity { get; set; } = 0.58;
     public string ToggleShortcut { get; set; } = "Ctrl+Alt+P";
     public string UnlockShortcut { get; set; } = "Ctrl+Alt+U";
+    public string Language { get; set; } = "auto";
 
     public void Normalize()
     {
+        Language = Localizer.Normalize(Language);
         Normal ??= new(); Compact ??= new() { Width = 460, Height = 142 };
         NormalizePlacement(Normal, 330, 255, 390, 270);
         NormalizePlacement(Compact, 360, 138, 460, 142);
@@ -50,7 +52,7 @@ public sealed class SettingsStore
             settings.Normalize(); return settings;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)
-        { warning = "Settings could not be read. Default settings are in use."; return new(); }
+        { warning = TextKeys.SettingsReadFailed; return new(); }
     }
     public bool Save(AppSettings settings)
     {
