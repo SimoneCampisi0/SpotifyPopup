@@ -39,6 +39,7 @@ public partial class SettingsWindow : Window
         DialogResult = true;
     }
     private void CancelClick(object sender, RoutedEventArgs e) => DialogResult = false;
+    private void AboutClick(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
     private void LanguageChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) => ErrorText.Text = Localizer.Get(errorKey);
     private void UpdateOpacity() => OpacityValue.Text = OpacitySlider.Value.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + "%";
 }

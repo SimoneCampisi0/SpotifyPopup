@@ -43,6 +43,7 @@ internal static class Program
         Check(controller.Initialized, "Controller initializes on window load");
         Check(!window.Player.CanPlayPause && !window.Player.CanNext && !window.Player.CanPrevious && !window.Player.CanSeek, "Disconnected controls are all disabled");
         Check(window.OpenSpotifyVisibility == Visibility.Visible, "Open Spotify is available without a session");
+        checks += await ArtworkChecks.Run(window, controller.Publish, output);
         var rect = NativeMethods.Bounds(window);
         Check(rect.Left > -100000 && rect.Top > -100000, "An off-screen saved window is recovered");
         controller.Publish(new MediaSnapshot { Title = "A long track title for layout validation", Artist = "Artist with a long display name", Album = "Album", Connected = true,
@@ -94,6 +95,7 @@ internal static class Program
         };
         settingsDialog.ShowDialog();
         await CheckLanguages(window, controller, store, output);
+        await CheckAbout(window, output);
         window.Close(); await Pump();
         Check(controller.Disposed, "Closing releases the controller");
         var saved = store.Load(out _);
@@ -216,6 +218,36 @@ internal static class Program
             FindButtons(dialog).Single(b => (string?)b.Content == "Save").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         });
         controller.Publish(new());
+    }
+    private static async Task CheckAbout(MainWindow window, string output)
+    {
+        await EditSettings(window, async settings =>
+        {
+            await Pump();
+            var selectedLanguage = settings.SelectedLanguage;
+            Exception? failure = null;
+            _ = settings.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var about = settings.OwnedWindows.OfType<AboutWindow>().Single();
+                try
+                {
+                    Check(about.Owner == settings && about.Title == "About Spotify Popup", "Settings opens an owned About popup");
+                    Check(((Image)about.FindName("AppLogo")).Source != null, "About reuses the embedded application logo");
+                    Check(((BitmapSource)((Image)about.FindName("AppLogo")).Source).PixelWidth >= 64, "About uses a high-resolution icon frame");
+                    Check(((TextBlock)about.FindName("AuthorText")).Text == "Simone Campisi", "About credits the author");
+                    Check(((TextBlock)about.FindName("VersionText")).Text == "v1.3.0", "About displays the application version");
+                    Check(((TextBox)about.FindName("LicenseText")).Text.Contains("GNU GENERAL PUBLIC LICENSE"), "Full GPL license is available offline");
+                    about.UpdateLayout(); SaveImage(about, Path.Combine(output, "about.png"));
+                    ((Button)about.FindName("CloseButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                }
+                catch (Exception ex) { failure = ex; }
+                finally { if (about.IsVisible) about.Close(); }
+            }), DispatcherPriority.ApplicationIdle);
+            ((Button)settings.FindName("AboutButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            if (failure != null) throw failure;
+            Check(settings.IsVisible && settings.SelectedLanguage == selectedLanguage, "Closing About returns to Settings without changing preferences");
+            settings.Close();
+        });
     }
     private static IEnumerable<Button> FindButtons(DependencyObject root)
     {

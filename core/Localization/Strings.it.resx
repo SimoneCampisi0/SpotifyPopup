@@ -1,4 +1,11 @@
 <root>
+  <data name="About" xml:space="preserve"><value>About</value></data>
+  <data name="AboutTitle" xml:space="preserve"><value>About Spotify Popup</value></data>
+  <data name="CreatedBy" xml:space="preserve"><value>Created by</value></data>
+  <data name="License" xml:space="preserve"><value>License</value></data>
+  <data name="LicenseName" xml:space="preserve"><value>GNU General Public License v3.0</value></data>
+  <data name="LicenseText" xml:space="preserve"><value>Full GNU GPL v3.0 license text</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>

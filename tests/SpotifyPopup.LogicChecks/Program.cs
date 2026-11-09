@@ -91,4 +91,31 @@ var blocked = Path.Combine(directory, Guid.NewGuid().ToString()); Directory.Crea
 Equal(false, new SettingsStore(blocked).Save(loaded), "Unwritable destination reports failure without throwing");
 using (var held = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
     Equal(false, store.Save(loaded), "Locked settings file reports failure without throwing");
+// Synthetic covers exercise hue selection, alpha weighting, fallbacks and readability.
+byte[] Cover(params (byte R, byte G, byte B, byte A)[] colors) => colors.SelectMany(c => new[] { c.B, c.G, c.R, c.A }).ToArray();
+var redBlue = Cover(Enumerable.Repeat(((byte)255, (byte)0, (byte)0, (byte)255), 7)
+    .Concat(Enumerable.Repeat(((byte)0, (byte)0, (byte)255, (byte)255), 3)).ToArray());
+var palette = ArtworkPaletteExtractor.Extract(redBlue);
+Equal(true, palette.Start.R > palette.Start.B * 2, "Dominant red remains red rather than an average purple");
+Equal(true, palette.End.B > palette.End.R * 2, "Significant blue supplies the second gradient color");
+Equal(palette, ArtworkPaletteExtractor.Extract(redBlue), "Palette selection is deterministic");
+foreach (var color in new[] { ((byte)255, (byte)255, (byte)255, (byte)255), ((byte)0, (byte)0, (byte)0, (byte)255), ((byte)0, (byte)255, (byte)0, (byte)255) })
+{
+    var monochrome = ArtworkPaletteExtractor.Extract(Cover(color));
+    Equal(true, monochrome.Start != monochrome.End, "Monochrome cover supplies two tonal variations: " + color);
+    // The lowest enabled metadata color is approximately #ACCDC0. Check its contrast at each endpoint.
+    var foreground = ArtworkPaletteExtractor.Luminance(new(172, 205, 192));
+    foreach (var background in new[] { monochrome.Start, monochrome.End })
+        Equal(true, (foreground + .05) / (ArtworkPaletteExtractor.Luminance(background) + .05) >= 4.5, "Muted text remains readable on a bright cover");
+}
+Equal(ArtworkPalette.Default, ArtworkPaletteExtractor.Extract(Cover((255, 0, 0, 0))), "Transparent artwork falls back safely");
+Equal(ArtworkPalette.Default, ArtworkPaletteExtractor.Extract(Array.Empty<byte>()), "Empty artwork falls back safely");
+var alphaPalette = ArtworkPaletteExtractor.Extract(Cover((255, 0, 0, 1), (0, 0, 255, 255)));
+Equal(true, alphaPalette.Start.B > alphaPalette.Start.R * 2, "Partially transparent pixels are weighted by alpha");
+using (var canceled = new CancellationTokenSource())
+{
+    canceled.Cancel(); var observed = false;
+    try { ArtworkPaletteExtractor.Extract(redBlue, canceled.Token); } catch (OperationCanceledException) { observed = true; }
+    Equal(true, observed, "Palette extraction observes cancellation");
+}
 Console.WriteLine($"{count} logic checks passed.");

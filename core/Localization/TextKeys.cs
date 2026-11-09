@@ -3,6 +3,13 @@ namespace SpotifyPopup;
 // Stable resource identifiers; never persist translated text.
 public static class TextKeys
 {
+    public const string About = "About";
+    public const string AboutTitle = "AboutTitle";
+    public const string CreatedBy = "CreatedBy";
+    public const string License = "License";
+    public const string LicenseName = "LicenseName";
+    public const string LicenseText = "LicenseText";
+    public const string Close = "Close";
     public const string SettingsTitle = "SettingsTitle";
     public const string SettingsHeading = "SettingsHeading";
     public const string ShowAlbum = "ShowAlbum";
