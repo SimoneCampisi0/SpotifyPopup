@@ -114,10 +114,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             var from = stop.Color; // Includes the current animation value when a track interrupts it.
             var target = Color.FromArgb(243, color.R, color.G, color.B);
             stop.BeginAnimation(GradientStop.ColorProperty, null);
-            stop.Color = target;
+            // Keep the base value at the visible color until the replacement clock starts.
+            stop.Color = from;
             stop.BeginAnimation(GradientStop.ColorProperty, new ColorAnimation(from, target, TimeSpan.FromMilliseconds(500))
             {
-                FillBehavior = FillBehavior.Stop,
+                FillBehavior = FillBehavior.HoldEnd,
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
             }, HandoffBehavior.SnapshotAndReplace);
         }
