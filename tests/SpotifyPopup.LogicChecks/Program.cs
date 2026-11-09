@@ -38,8 +38,8 @@ Equal(true, warning != null, "Corrupt settings report a recoverable warning");
 Equal(.58, loaded.LockedOpacity, "Corrupt settings fall back to defaults");
 loaded.Normal.Width = double.NaN; loaded.Compact.Height = -100; loaded.LockedOpacity = 99;
 loaded.Normalize();
-Equal(390d, loaded.Normal.Width, "Nonfinite dimensions are repaired");
-Equal(138d, loaded.Compact.Height, "Dimensions respect compact minimum");
+Equal(420d, loaded.Normal.Width, "Nonfinite dimensions are repaired");
+Equal(160d, loaded.Compact.Height, "Dimensions respect compact minimum");
 Equal(1d, loaded.LockedOpacity, "Opacity cannot exceed one");
 // Language migration must not discard existing preferences.
 File.WriteAllText(path, "{\"ShowAlbum\":false,\"LockedOpacity\":0.72,\"ToggleShortcut\":\"Ctrl+Alt+F8\"}");

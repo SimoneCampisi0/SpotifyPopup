@@ -3,7 +3,7 @@ namespace SpotifyPopup;
 public readonly record struct ArtworkColor(byte R, byte G, byte B);
 public readonly record struct ArtworkPalette(ArtworkColor Start, ArtworkColor End)
 {
-    public static ArtworkPalette Default => new(new(47, 61, 57), new(12, 21, 21));
+    public static ArtworkPalette Default => new(new(29, 31, 35), new(17, 19, 23));
 }
 
 // Pure color analysis, independent of WPF and media sessions.

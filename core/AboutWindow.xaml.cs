@@ -10,6 +10,7 @@ public partial class AboutWindow : Window
     {
         InitializeComponent();
         Closed += (_, _) => lifetime.Cancel();
+        Loaded += (_, _) => NativeMethods.EnsureVisible(this);
         // WPF's default ICO source selects a small frame; use the original high-resolution artwork.
         using var logo = Application.GetResourceStream(new Uri("/SpotifyPopup;component/Assets/logo.ico", UriKind.Relative)).Stream;
         var icon = new IconBitmapDecoder(logo, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
@@ -51,6 +52,13 @@ public partial class AboutWindow : Window
     {
         try { Clipboard.SetText(Diagnostics.Report()); UpdateStatus.Text = Localizer.Get(TextKeys.DiagnosticsCopied); }
         catch (Exception ex) { Diagnostics.Record("diagnostics-copy", ex); UpdateStatus.Text = Localizer.Get(TextKeys.DiagnosticsFailed); }
+    }
+    private void LicenseClick(object sender, RoutedEventArgs e)
+    {
+        var expand = LicenseText.Visibility != Visibility.Visible;
+        LicenseText.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+        LicenseButton.Content = Localizer.Get(expand ? TextKeys.HideLicense : TextKeys.ReadLicense);
+        if (expand) LicenseText.BringIntoView();
     }
     private void CloseClick(object sender, RoutedEventArgs e) => Close();
 }

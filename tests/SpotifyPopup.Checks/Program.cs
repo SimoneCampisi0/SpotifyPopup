@@ -103,10 +103,11 @@ internal static class Program
         var saved = store.Load(out _);
         Check(saved.CompactMode && saved.Compact.Width == 360, "Layout and dimensions persist on close");
         var restarted = new MainWindow(new FakeController(), store, false); restarted.Show(); await Pump();
-        Check(Localizer.Current.Culture.Name == "it" && restarted.Player.Title == "Apri Spotify e riproduci un brano", "Restart applies saved Italian before first window content");
+        Check(Localizer.Current.Culture.Name == "it" && restarted.Player.Title == Localizer.Get(TextKeys.OpenSpotifyPrompt), "Restart applies saved Italian before first window content");
         restarted.Close();
         await CheckTray(output);
         checks += await DesktopChecks.Run(output);
+        checks += await DesignChecks.Run(output);
         Console.WriteLine($"{checks} Windows UI checks passed. No real Spotify commands were issued.");
     }
     private static async Task CheckLanguages(MainWindow window, FakeController controller, SettingsStore store, string output)
@@ -234,11 +235,11 @@ internal static class Program
                 var about = settings.OwnedWindows.OfType<AboutWindow>().Single();
                 try
                 {
-                    Check(about.Owner == settings && about.Title == "About Spotify Popup", "Settings opens an owned About popup");
+                    Check(about.Owner == settings && about.Title == Localizer.Get(TextKeys.AboutTitle), "Settings opens an owned About popup");
                     Check(((Image)about.FindName("AppLogo")).Source != null, "About reuses the embedded application logo");
                     Check(((BitmapSource)((Image)about.FindName("AppLogo")).Source).PixelWidth >= 64, "About uses a high-resolution icon frame");
                     Check(((TextBlock)about.FindName("AuthorText")).Text == "Simone Campisi", "About credits the author");
-                    Check(((TextBlock)about.FindName("VersionText")).Text == "v1.4.0", "About displays the application version");
+                    Check(((TextBlock)about.FindName("VersionText")).Text == "v1.5.0", "About displays the application version");
                     Check(((TextBox)about.FindName("LicenseText")).Text.Contains("GNU GENERAL PUBLIC LICENSE"), "Full GPL license is available offline");
                     about.UpdateLayout(); SaveImage(about, Path.Combine(output, "about.png"));
                     ((Button)about.FindName("CloseButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -280,7 +281,11 @@ internal static class Program
         dialog.UpdateLayout();
         var scroll = (ScrollViewer)dialog.FindName("SettingsScroll");
         Check(scroll.ExtentWidth <= scroll.ViewportWidth + 1, "Settings has no hidden horizontal overflow: " + Localizer.Current.Culture.Name);
-        Check(((ComboBox)dialog.FindName("LanguageBox")).ActualWidth > 100 && ((Slider)dialog.FindName("OpacitySlider")).ActualWidth > 100, "Language selector and opacity fit at minimum width");
+        dialog.SelectSection(0); dialog.UpdateLayout();
+        Check(((ComboBox)dialog.FindName("LanguageBox")).ActualWidth > 100, "Language selector fits its section");
+        dialog.SelectSection(1); dialog.UpdateLayout();
+        Check(((Slider)dialog.FindName("OpacitySlider")).ActualWidth > 100, "Opacity slider fits its section");
+        dialog.SelectSection(0); dialog.UpdateLayout();
     }
     private static async Task CheckTray(string output)
     {

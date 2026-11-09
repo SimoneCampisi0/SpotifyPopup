@@ -32,7 +32,7 @@ internal static class DesktopChecks
         var settings = new AppSettings { EssentialMode = true, Language = "en", BackgroundMode = "fixed", AnimateBackground = false };
         var preferences = new SettingsStore(System.IO.Path.Combine(output, "essential.json")); preferences.Save(settings);
         var player = new Fake(); var essential = new MainWindow(player, preferences, false); essential.Show(); await Dispatcher.Yield();
-        Check(((Grid)essential.FindName("EssentialLayout")).IsVisible && essential.MinWidth == 260, "Essential layout restores with its own dimensions");
+        Check(((Grid)essential.FindName("EssentialLayout")).IsVisible && essential.MinWidth == 280, "Essential layout restores with its own dimensions");
         var changes = new List<string?>(); essential.Player.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
         var track = new MediaSnapshot { Connected = true, Title = "one", TrackKey = "one", Duration = 120, Position = 1 };
         player.Publish(track); changes.Clear(); player.Publish(track with { Position = 2 });
@@ -51,6 +51,10 @@ internal static class DesktopChecks
         using var hotkeys = new HotkeyManager(source!, () => { }, () => { });
         var shortcuts = new AppSettings { ToggleShortcut = "Ctrl+Alt+F10", UnlockShortcut = "Ctrl+Alt+F11", PlayShortcut = "Ctrl+Alt+F10" };
         Check(!hotkeys.TryApply(shortcuts, out var duplicate) && duplicate == TextKeys.ShortcutDuplicate, "Playback shortcuts cannot duplicate show/hide shortcut");
+        shortcuts.PlayShortcut = "";
+        Check(hotkeys.TryApply(shortcuts, out _), "Global shortcuts can be registered before opening Settings");
+        hotkeys.Suspend();
+        Check(hotkeys.TryApply(shortcuts, out _), "Unchanged shortcuts are restored after shortcut capture ends");
         return count;
     }
     private sealed class SourceWindow : IDisposable

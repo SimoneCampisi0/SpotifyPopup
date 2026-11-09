@@ -1,13 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <root>
   <data name="About" xml:space="preserve">
-    <value>About</value>
+    <value>Informazioni</value>
   </data>
   <data name="AboutTitle" xml:space="preserve">
-    <value>About Spotify Popup</value>
+    <value>Informazioni su Spotify Popup</value>
   </data>
   <data name="CreatedBy" xml:space="preserve">
-    <value>Created by</value>
+    <value>Creato da</value>
   </data>
   <data name="License" xml:space="preserve">
     <value>License</value>
@@ -31,7 +31,7 @@
     <value>Impostazioni di Spotify Popup</value>
   </data>
   <data name="SettingsHeading" xml:space="preserve">
-    <value>Personalizza il player</value>
+    <value>Impostazioni</value>
   </data>
   <data name="ShowAlbum" xml:space="preserve">
     <value>Mostra album</value>
@@ -43,16 +43,16 @@
     <value>OpacitÃ  quando bloccato</value>
   </data>
   <data name="OpacityHint" xml:space="preserve">
-    <value>L'anteprima appare sul popup. Il pulsante Sblocca resta visibile.</value>
+    <value>Usata solo quando il player è bloccato. L’anteprima si aggiorna durante il trascinamento.</value>
   </data>
   <data name="ToggleShortcut" xml:space="preserve">
-    <value>Scorciatoia mostra / nascondi</value>
+    <value>Mostra / nascondi player</value>
   </data>
   <data name="UnlockShortcut" xml:space="preserve">
-    <value>Scorciatoia sblocca e mostra</value>
+    <value>Sblocca player</value>
   </data>
   <data name="ShortcutHint" xml:space="preserve">
-    <value>Esempio: Ctrl+Alt+P. Le scorciatoie devono essere diverse.</value>
+    <value>Queste due scorciatoie sono obbligatorie. Duplicati e combinazioni occupate vengono rilevati al salvataggio.</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Annulla</value>
@@ -61,10 +61,10 @@
     <value>Salva</value>
   </data>
   <data name="Language" xml:space="preserve">
-    <value>Lingua / Language</value>
+    <value>Lingua</value>
   </data>
   <data name="LanguageHint" xml:space="preserve">
-    <value>La lingua cambia premendo Salva. Annulla mantiene la lingua attuale.</value>
+    <value>Scegli una lingua o segui quella di Windows.</value>
   </data>
   <data name="SystemLanguage" xml:space="preserve">
     <value>Sistema / System</value>
@@ -76,7 +76,7 @@
     <value>Mostra</value>
   </data>
   <data name="SwitchLayout" xml:space="preserve">
-    <value>Cambia vista</value>
+    <value>Alterna ampio / compatto</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Impostazioni</value>
@@ -124,7 +124,7 @@
     <value>Pausa</value>
   </data>
   <data name="OpenSpotifyPrompt" xml:space="preserve">
-    <value>Apri Spotify e riproduci un brano</value>
+    <value>La tua musica parte da qui</value>
   </data>
   <data name="SpotifyUnavailable" xml:space="preserve">
     <value>Spotify non disponibile</value>
@@ -202,7 +202,7 @@
     <value>Avvia nell’area di notifica</value>
   </data>
   <data name="StartupHint" xml:space="preserve">
-    <value>Solo per il tuo account Windows. Conserva l’eseguibile in un percorso stabile. Salva per correggere il percorso di avvio.</value>
+    <value>Avvio all’accesso del tuo account. Se sposti l’app, salva di nuovo per aggiornarne il percorso.</value>
   </data>
   <data name="StartupFailed" xml:space="preserve">
     <value>Impossibile aggiornare l’avvio con Windows. Nessuna preferenza è stata applicata.</value>
@@ -241,13 +241,13 @@
     <value>Visibilità automatica</value>
   </data>
   <data name="HideDisconnected" xml:space="preserve">
-    <value>Nascondi quando Spotify è scollegato (dopo 5 secondi)</value>
+    <value>Nascondi quando Spotify si scollega</value>
   </data>
   <data name="HidePaused" xml:space="preserve">
     <value>Nascondi dopo una pausa prolungata</value>
   </data>
   <data name="PauseDelay" xml:space="preserve">
-    <value>Attesa in pausa, in secondi (10–3600)</value>
+    <value>Attesa in pausa (secondi)</value>
   </data>
   <data name="VisibilityHint" xml:space="preserve">
     <value>La riproduzione riapre il popup nascosto automaticamente. Mostra/nascondi manuale prevale fino a un cambio di riproduzione o connessione.</value>
@@ -274,7 +274,7 @@
     <value>Avanti di 10 secondi</value>
   </data>
   <data name="OptionalShortcutHint" xml:space="preserve">
-    <value>Lascia vuoto per disattivare. Le azioni richiedono il relativo controllo esposto da Spotify.</value>
+    <value>Facoltative: lascia vuoto per disattivare. La disponibilità dipende da Spotify.</value>
   </data>
   <data name="RecoveryHeading" xml:space="preserve">
     <value>Ripristino</value>
@@ -292,7 +292,7 @@
     <value>Sostituire le impostazioni della finestra con i valori iniziali? Premi Salva per applicarli, inclusa la disattivazione dell’avvio Windows.</value>
   </data>
   <data name="EssentialMode" xml:space="preserve">
-    <value>Layout essenziale</value>
+    <value>Attiva / disattiva layout essenziale</value>
   </data>
   <data name="CheckUpdates" xml:space="preserve">
     <value>Controlla aggiornamenti</value>
@@ -326,5 +326,83 @@
   </data>
   <data name="LogoName" xml:space="preserve">
     <value>Logo di Spotify Popup</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Menu del player</value>
+  </data>
+  <data name="GeneralSection" xml:space="preserve">
+    <value>Generali</value>
+  </data>
+  <data name="GeneralDescription" xml:space="preserve">
+    <value>Avvio dell’app e lingua dell’interfaccia.</value>
+  </data>
+  <data name="AppearanceDescription" xml:space="preserve">
+    <value>Colori, layout e dettagli del player.</value>
+  </data>
+  <data name="VisibilityDescription" xml:space="preserve">
+    <value>Scegli quando mostrare il player o nasconderlo.</value>
+  </data>
+  <data name="ShortcutsSection" xml:space="preserve">
+    <value>Scorciatoie</value>
+  </data>
+  <data name="ShortcutsDescription" xml:space="preserve">
+    <value>Controlla riproduzione e player dalla tastiera.</value>
+  </data>
+  <data name="RecoveryDescription" xml:space="preserve">
+    <value>Ripristina la finestra o torna alle impostazioni iniziali.</value>
+  </data>
+  <data name="PlayerHeading" xml:space="preserve">
+    <value>Player</value>
+  </data>
+  <data name="LanguageSection" xml:space="preserve">
+    <value>Lingua</value>
+  </data>
+  <data name="SettingsSaveHint" xml:space="preserve">
+    <value>Le modifiche si applicano premendo Salva.</value>
+  </data>
+  <data name="ShortcutCaptureHint" xml:space="preserve">
+    <value>Seleziona un campo e premi una combinazione. Backspace la cancella. Tab passa al campo successivo.</value>
+  </data>
+  <data name="ConfirmReset" xml:space="preserve">
+    <value>Usa valori iniziali</value>
+  </data>
+  <data name="DefaultsReady" xml:space="preserve">
+    <value>Valori iniziali caricati. Salva per applicarli o Annulla per conservare le preferenze.</value>
+  </data>
+  <data name="AboutTagline" xml:space="preserve">
+    <value>Un piccolo spazio per la tua musica.</value>
+  </data>
+  <data name="ReadLicense" xml:space="preserve">
+    <value>Leggi la licenza</value>
+  </data>
+  <data name="HideLicense" xml:space="preserve">
+    <value>Nascondi la licenza</value>
+  </data>
+  <data name="UpdatesHeading" xml:space="preserve">
+    <value>Resta aggiornato</value>
+  </data>
+  <data name="UpdatesHint" xml:space="preserve">
+    <value>Controlla GitHub solo quando lo richiedi.</value>
+  </data>
+  <data name="DiagnosticsHint" xml:space="preserve">
+    <value>Copia i dettagli tecnici utili a risolvere un problema.</value>
+  </data>
+  <data name="LayoutNormal" xml:space="preserve">
+    <value>Ampio</value>
+  </data>
+  <data name="LayoutCompact" xml:space="preserve">
+    <value>Compatto</value>
+  </data>
+  <data name="LayoutEssential" xml:space="preserve">
+    <value>Essenziale</value>
+  </data>
+  <data name="LayoutHeading" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="LayoutHint" xml:space="preserve">
+    <value>Cambia dal menu del player. Ogni layout ricorda le proprie dimensioni.</value>
+  </data>
+  <data name="VisibilitySection" xml:space="preserve">
+    <value>Visibilità</value>
   </data>
 </root>

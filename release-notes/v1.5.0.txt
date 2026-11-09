@@ -1,0 +1,35 @@
+Spotify Popup v1.5.0 — A calmer space for your music
+
+A complete visual refresh
+- Shared charcoal surfaces, mint accents, rounded controls, deliberate spacing and clear keyboard focus.
+- Larger cover artwork and clearer title/artist hierarchy in the comfortable player.
+- Stable text and control sizes when resizing, with compact and essential layouts retained.
+- Player menu with explicit layout choices and a checkmark for the active view.
+- Custom sliders, switches, dropdowns, text fields, buttons, tooltips, menus and frameless dialogs.
+- A matching notification-area menu, retaining the system renderer in high-contrast mode.
+
+Settings that are easier to navigate
+- Five sections: General, Appearance, Visibility, Shortcuts and Recovery.
+- Save and Cancel remain available while section content scrolls.
+- Capture shortcuts by pressing keys; app hotkeys are suspended during editing and restored on closing.
+- Contextual custom-color controls with a live swatch; pause-delay input follows its visibility option.
+- Relevant section and field are revealed on validation errors.
+- Inline confirmation for resetting preferences; saving is still required to apply defaults.
+
+About and accessibility
+- Redesigned About with author, version, offline license disclosure, update checks and diagnostics.
+- English and Italian interface text, accessible control names, visible focus and preserved keyboard interaction.
+- Early Per-Monitor V2 DPI initialization and published-window verification.
+- Temporary warnings and disconnections do not permanently enlarge compact layouts.
+
+Compatibility
+- Keeps v1.4.0 startup, tray, single-instance, media recovery, settings migration and portable-mode behavior.
+- Preserves user preferences and positions, adjusting only dimensions that no longer fit the redesigned controls.
+- Still a self-contained single-file executable for 64-bit Windows; Spotify credentials are not required.
+
+Verification
+- Windows CI runs logic, controller, desktop and UI regression checks and publishes rendered screenshots.
+- New design checks cover every Settings section in both languages, context menu layout selection, color controls, pause-delay dependencies, inline reset and license disclosure.
+- Checks include fixed font sizes during resizing and vector rendering at 2x resolution.
+- Published executable smoke tests cover normal/tray startup, paths with spaces, single-instance activation, icon, DPI-awareness context and shutdown.
+- Real Spotify playback, Windows sign-in, assistive technologies and actual mixed-DPI monitor transitions remain manual checks.

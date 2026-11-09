@@ -11,7 +11,7 @@ public sealed class UpdateService
     public async Task<Version> LatestAsync(CancellationToken cancellation)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/SimoneCampisi0/SpotifyPopup/releases/latest");
-        request.Headers.UserAgent.ParseAdd("SpotifyPopup/1.4.0");
+        request.Headers.UserAgent.ParseAdd("SpotifyPopup/1.5.0");
         request.Headers.Accept.ParseAdd("application/vnd.github+json");
         using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
         response.EnsureSuccessStatusCode();

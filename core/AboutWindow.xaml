@@ -1,32 +1,34 @@
-<Window x:Class="SpotifyPopup.AboutWindow"
- xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:loc="clr-namespace:SpotifyPopup"
- Title="{loc:Text AboutTitle}" Width="460" Height="640" MinWidth="400" MinHeight="540" WindowStartupLocation="CenterOwner"
- Background="#172522" Foreground="#EAF6F3" ShowInTaskbar="False" ResizeMode="CanResize" Icon="/SpotifyPopup;component/Assets/logo.ico">
- <Grid Margin="28">
-  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-  <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
-   <Image x:Name="AppLogo" Width="64" Height="64" Margin="0,0,18,0" RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="{loc:Text LogoName}"/>
-   <StackPanel VerticalAlignment="Center">
-    <TextBlock Text="Spotify Popup" FontSize="24" FontWeight="SemiBold" Foreground="#EAF6F3"/>
-    <TextBlock x:Name="VersionText" FontSize="12" Foreground="#B7CEC2" Margin="0,5,0,0"/>
+<Window x:Class="SpotifyPopup.AboutWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:loc="clr-namespace:SpotifyPopup" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+ Title="{loc:Text AboutTitle}" Width="500" Height="650" MinWidth="460" MinHeight="520" WindowStartupLocation="CenterOwner" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Foreground="#F3F5F7" FontFamily="Segoe UI Variable Text, Segoe UI" ShowInTaskbar="False" ResizeMode="CanResize" Icon="/SpotifyPopup;component/Assets/logo.ico" UseLayoutRounding="True">
+ <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="56" ResizeBorderThickness="6" GlassFrameThickness="0"/></shell:WindowChrome.WindowChrome>
+ <Window.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceDictionary Source="Theme.xaml"/></ResourceDictionary.MergedDictionaries></ResourceDictionary></Window.Resources>
+ <Window.Template><ControlTemplate TargetType="{x:Type Window}"><AdornerDecorator><ContentPresenter/></AdornerDecorator></ControlTemplate></Window.Template>
+ <Border Background="{StaticResource CanvasBrush}" CornerRadius="20" BorderBrush="#454C55" BorderThickness="1" Margin="1"><Grid>
+  <Grid.RowDefinitions><RowDefinition Height="56"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+  <Grid Margin="24,0,14,0"><TextBlock Text="{loc:Text About}" FontSize="13" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+   <Button x:Name="CloseButton" Content="&#xE8BB;" Style="{StaticResource GlassButton}" HorizontalAlignment="Right" VerticalAlignment="Center" IsCancel="True" Click="CloseClick" ToolTip="{loc:Text Close}" AutomationProperties.Name="{loc:Text Close}" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+  </Grid>
+  <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="28,4,28,24"><StackPanel>
+   <StackPanel HorizontalAlignment="Center" Margin="0,0,0,28">
+    <Image x:Name="AppLogo" Width="72" Height="72" RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="{loc:Text LogoName}"/>
+    <TextBlock Text="Spotify Popup" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,6"/>
+    <TextBlock Text="{loc:Text AboutTagline}" Style="{StaticResource Hint}" HorizontalAlignment="Center"/>
+    <Border CornerRadius="10" Background="#263B33" Padding="10,4" HorizontalAlignment="Center" Margin="0,12,0,0"><TextBlock x:Name="VersionText" FontSize="11" Foreground="{StaticResource AccentBrush}"/></Border>
    </StackPanel>
-  </StackPanel>
-  <StackPanel Grid.Row="1" Margin="0,0,0,20">
-   <TextBlock Text="{loc:Text CreatedBy}" Foreground="#B7CEC2" FontSize="12"/>
-   <TextBlock x:Name="AuthorText" Text="Simone Campisi" Foreground="#EAF6F3" FontSize="16" Margin="0,4,0,18"/>
-   <TextBlock Text="{loc:Text License}" Foreground="#B7CEC2" FontSize="12"/>
-   <TextBlock Text="{loc:Text LicenseName}" Foreground="#EAF6F3" FontSize="14" TextWrapping="Wrap" Margin="0,4,0,0"/>
-  </StackPanel>
-  <TextBox x:Name="LicenseText" Grid.Row="2" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-   Background="#10201B" Foreground="#C9DED3" BorderBrush="#41594F" Padding="10" FontSize="11" AutomationProperties.Name="{loc:Text LicenseText}"/>
-  <StackPanel Grid.Row="3" Margin="0,14,0,0">
-   <TextBlock x:Name="UpdateStatus" TextWrapping="Wrap" Foreground="#C9DED3" AutomationProperties.LiveSetting="Polite"/>
-   <WrapPanel Margin="0,8,0,0">
-    <Button x:Name="UpdateButton" Content="{loc:Text CheckUpdates}" Click="CheckUpdatesClick" Padding="10,6" Margin="0,0,8,6"/>
-    <Button Content="{loc:Text CopyDiagnostics}" Click="CopyDiagnosticsClick" Padding="10,6" Margin="0,0,0,6"/>
-   </WrapPanel>
-   <Button x:Name="DownloadButton" Content="{loc:Text OpenDownload}" Click="DownloadClick" Visibility="Collapsed" HorizontalAlignment="Left" Padding="10,6"/>
-  <Button x:Name="CloseButton" Content="{loc:Text Close}" Padding="20,7" HorizontalAlignment="Right" Margin="0,8,0,0" IsCancel="True" IsDefault="True" Click="CloseClick"/>
-  </StackPanel>
- </Grid>
+   <Border Style="{StaticResource Card}"><StackPanel>
+    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="{loc:Text CreatedBy}" Style="{StaticResource Hint}"/><TextBlock x:Name="AuthorText" Grid.Column="1" Text="Simone Campisi" FontSize="13" FontWeight="SemiBold"/></Grid>
+    <Border Height="1" Background="#343A42" Margin="0,16"/>
+    <TextBlock Text="{loc:Text LicenseName}" FontSize="13"/>
+    <Button x:Name="LicenseButton" Content="{loc:Text ReadLicense}" Style="{StaticResource QuietButton}" Click="LicenseClick" HorizontalAlignment="Left" Padding="0,8" Foreground="{StaticResource AccentBrush}" Margin="0,4,0,0"/>
+    <TextBox x:Name="LicenseText" Visibility="Collapsed" Height="180" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" FontSize="11" Padding="12" Margin="0,10,0,0" AutomationProperties.Name="{loc:Text LicenseText}"/>
+   </StackPanel></Border>
+   <Border Style="{StaticResource Card}"><StackPanel>
+    <TextBlock Text="{loc:Text UpdatesHeading}" FontSize="14" FontWeight="SemiBold"/>
+    <TextBlock Text="{loc:Text UpdatesHint}" Style="{StaticResource Hint}" Margin="0,6,0,16"/>
+    <WrapPanel><Button x:Name="UpdateButton" Content="{loc:Text CheckUpdates}" Click="CheckUpdatesClick" Margin="0,0,8,8"/><Button Content="{loc:Text CopyDiagnostics}" Click="CopyDiagnosticsClick" Margin="0,0,0,8"/></WrapPanel>
+    <TextBlock x:Name="UpdateStatus" Style="{StaticResource Hint}" AutomationProperties.LiveSetting="Polite"/>
+    <Button x:Name="DownloadButton" Content="{loc:Text OpenDownload}" Style="{StaticResource PrimaryButton}" Click="DownloadClick" Visibility="Collapsed" HorizontalAlignment="Left" Margin="0,12,0,0"/>
+   </StackPanel></Border>
+  </StackPanel></ScrollViewer>
+ </Grid></Border>
 </Window>

@@ -110,7 +110,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $branch = 'feat/desktop-v1.4.0'
+          $branch = 'feat/ui-v1.5.0'
           $branches = gh api "repos/$env:GITHUB_REPOSITORY/branches" --jq '.[].name'
           if ($LASTEXITCODE -ne 0) { throw 'Could not list branches.' }
           if ($branch -notin $branches) { exit 0 }
