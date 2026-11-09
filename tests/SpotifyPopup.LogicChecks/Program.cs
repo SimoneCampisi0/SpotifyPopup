@@ -1,5 +1,6 @@
 using SpotifyPopup;
 
+Diagnostics.DirectoryPath = Path.GetFullPath(".temp/logic-checks/logs");
 var count = 0;
 void Equal<T>(T expected, T actual, string name)
 {
@@ -119,3 +120,44 @@ using (var canceled = new CancellationTokenSource())
     Equal(true, observed, "Palette extraction observes cancellation");
 }
 Console.WriteLine($"{count} logic checks passed.");
+// v1.4.0: migration, portable storage, visibility and stable-release parsing.
+var migrationRoot = Path.Combine(directory, Guid.NewGuid().ToString());
+var portableRoot = Path.Combine(migrationRoot, "portable"); var userRoot = Path.Combine(migrationRoot, "user");
+Directory.CreateDirectory(portableRoot);
+var legacyPath = Path.Combine(portableRoot, "SpotifyPopup.settings.json");
+File.WriteAllText(legacyPath, "{\"ShowAlbum\":false,\"StartInTray\":true}");
+var migrated = new SettingsStore(null, portableRoot, userRoot);
+Equal(true, migrated.Load(out _).StartInTray, "Legacy settings migrate to user storage");
+Equal(true, File.Exists(migrated.Path) && File.Exists(legacyPath), "Migration preserves the legacy copy");
+File.WriteAllText(Path.Combine(portableRoot, "SpotifyPopup.portable"), "");
+var portableStore = new SettingsStore(null, portableRoot, userRoot);
+Equal(true, portableStore.Portable && portableStore.Path == legacyPath, "Explicit marker selects portable storage");
+File.WriteAllText(legacyPath, "{invalid"); portableStore.Load(out _);
+Equal(1, Directory.GetFiles(portableRoot, "*.corrupt-*").Length, "Invalid JSON is backed up before replacement");
+Equal(true, portableStore.Save(new AppSettings()), "Settings can recover after corrupt JSON backup");
+var newPreferences = new AppSettings { StartWithWindows = true, StartInTray = true, EssentialMode = true,
+    BackgroundMode = "custom", BackgroundColor = "#FF0000", AnimateBackground = false,
+    HideWhenPaused = true, PauseDelaySeconds = 100, PlayShortcut = "Ctrl+Alt+F9" };
+Equal(true, store.Save(newPreferences), "New preferences save");
+var roundtrip = store.Load(out _);
+Equal(true, roundtrip.StartWithWindows && roundtrip.StartInTray && roundtrip.EssentialMode && !roundtrip.AnimateBackground, "Startup and appearance preferences survive restart");
+Equal("Ctrl+Alt+F9", roundtrip.PlayShortcut, "Optional media shortcut persists");
+Equal(false, AppSettings.ValidColor("red"), "Custom color accepts only explicit RGB hex");
+var policy = new AutoVisibilityPolicy(); var now = DateTimeOffset.UtcNow;
+var auto = new AppSettings { HideWhenDisconnected = true, HideWhenPaused = true, PauseDelaySeconds = 30 };
+Equal<bool?>(null, policy.Evaluate(false, false, now, auto), "Disconnected popup waits before hiding");
+Equal<bool?>(false, policy.Evaluate(false, false, now.AddSeconds(6), auto), "Disconnected popup hides after grace period");
+Equal<bool?>(true, policy.Evaluate(true, true, now.AddSeconds(7), auto), "Playback restores automatically hidden popup");
+policy.Manual(false);
+Equal<bool?>(null, policy.Evaluate(true, true, now.AddSeconds(50), auto), "Manual visibility wins over automatic show");
+Equal<bool?>(null, policy.Evaluate(true, false, now.AddSeconds(51), auto), "Playback state change starts pause delay");
+Equal<bool?>(false, policy.Evaluate(true, false, now.AddSeconds(82), auto), "Prolonged pause hides popup");
+policy.Manual(true);
+Equal<bool?>(null, policy.Evaluate(true, false, now.AddSeconds(100), auto), "Manual show wins over prolonged pause");
+Equal(new Version(1, 4, 0), UpdateService.Parse(System.Text.Encoding.UTF8.GetBytes("{\"tag_name\":\"v1.4.0\",\"draft\":false,\"prerelease\":false}")), "Stable release version parses");
+foreach (var invalid in new[] { "{}", "{\"tag_name\":\"v1.5.0-beta\",\"draft\":false,\"prerelease\":false}", "{\"tag_name\":\"v1.5.0\",\"draft\":true,\"prerelease\":false}" })
+{
+    var rejected = false; try { UpdateService.Parse(System.Text.Encoding.UTF8.GetBytes(invalid)); } catch (Exception) { rejected = true; }
+    Equal(true, rejected, "Invalid, prerelease or draft release is rejected");
+}
+Console.WriteLine($"{count} total logic checks passed.");

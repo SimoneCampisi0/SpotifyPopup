@@ -1,11 +1,11 @@
 <Window x:Class="SpotifyPopup.AboutWindow"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:loc="clr-namespace:SpotifyPopup"
- Title="{loc:Text AboutTitle}" Width="460" Height="490" MinWidth="400" MinHeight="430" WindowStartupLocation="CenterOwner"
+ Title="{loc:Text AboutTitle}" Width="460" Height="640" MinWidth="400" MinHeight="540" WindowStartupLocation="CenterOwner"
  Background="#172522" Foreground="#EAF6F3" ShowInTaskbar="False" ResizeMode="CanResize" Icon="/SpotifyPopup;component/Assets/logo.ico">
  <Grid Margin="28">
   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
   <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
-   <Image x:Name="AppLogo" Width="64" Height="64" Margin="0,0,18,0" RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="Spotify Popup logo"/>
+   <Image x:Name="AppLogo" Width="64" Height="64" Margin="0,0,18,0" RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="{loc:Text LogoName}"/>
    <StackPanel VerticalAlignment="Center">
     <TextBlock Text="Spotify Popup" FontSize="24" FontWeight="SemiBold" Foreground="#EAF6F3"/>
     <TextBlock x:Name="VersionText" FontSize="12" Foreground="#B7CEC2" Margin="0,5,0,0"/>
@@ -19,6 +19,14 @@
   </StackPanel>
   <TextBox x:Name="LicenseText" Grid.Row="2" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
    Background="#10201B" Foreground="#C9DED3" BorderBrush="#41594F" Padding="10" FontSize="11" AutomationProperties.Name="{loc:Text LicenseText}"/>
-  <Button x:Name="CloseButton" Grid.Row="3" Content="{loc:Text Close}" Padding="20,7" HorizontalAlignment="Right" Margin="0,20,0,0" IsCancel="True" IsDefault="True" Click="CloseClick"/>
+  <StackPanel Grid.Row="3" Margin="0,14,0,0">
+   <TextBlock x:Name="UpdateStatus" TextWrapping="Wrap" Foreground="#C9DED3" AutomationProperties.LiveSetting="Polite"/>
+   <WrapPanel Margin="0,8,0,0">
+    <Button x:Name="UpdateButton" Content="{loc:Text CheckUpdates}" Click="CheckUpdatesClick" Padding="10,6" Margin="0,0,8,6"/>
+    <Button Content="{loc:Text CopyDiagnostics}" Click="CopyDiagnosticsClick" Padding="10,6" Margin="0,0,0,6"/>
+   </WrapPanel>
+   <Button x:Name="DownloadButton" Content="{loc:Text OpenDownload}" Click="DownloadClick" Visibility="Collapsed" HorizontalAlignment="Left" Padding="10,6"/>
+  <Button x:Name="CloseButton" Content="{loc:Text Close}" Padding="20,7" HorizontalAlignment="Right" Margin="0,8,0,0" IsCancel="True" IsDefault="True" Click="CloseClick"/>
+  </StackPanel>
  </Grid>
 </Window>

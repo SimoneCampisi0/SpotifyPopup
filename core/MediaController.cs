@@ -1,166 +1,135 @@
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using Windows.Media.Control;
 
 namespace SpotifyPopup;
 
 public sealed class MediaController : IMediaController
 {
     private readonly Dispatcher dispatcher;
-    private GlobalSystemMediaTransportControlsSessionManager? manager;
-    private GlobalSystemMediaTransportControlsSession? session;
-    private GlobalSystemMediaTransportControlsSessionPlaybackInfo? playback;
-    private GlobalSystemMediaTransportControlsSessionTimelineProperties? timeline;
+    private readonly Func<IMediaBackend> createBackend;
+    private readonly TimeSpan timeout;
+    private readonly CancellationTokenSource lifetime = new();
+    private CancellationTokenSource sessionLife = new();
+    private IMediaBackend? backend;
+    private IMediaSession? session;
+    private MediaPlayback? playback;
+    private MediaTimeline? timeline;
     private bool disposed, refreshing, requested, metadataDirty, commandPending, initializing;
-    private bool artworkPending;
-    private int generation, metadataRevision;
+    private int generation, revision;
     private DateTimeOffset nextRecovery, nextArtworkAttempt;
     public MediaSnapshot Snapshot { get; private set; } = new();
     public event EventHandler<MediaSnapshot>? Updated;
     public event EventHandler<string>? Notice;
-    public MediaController(Dispatcher dispatcher) => this.dispatcher = dispatcher;
-
+    public MediaController(Dispatcher dispatcher) : this(dispatcher, () => new WindowsMediaBackend(), TimeSpan.FromSeconds(8)) { }
+    internal MediaController(Dispatcher dispatcher, Func<IMediaBackend> createBackend, TimeSpan timeout)
+    { this.dispatcher = dispatcher; this.createBackend = createBackend; this.timeout = timeout; }
+    private async Task<T> Deadline<T>(Func<CancellationToken, Task<T>> operation, CancellationToken cancellation)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation, lifetime.Token);
+        deadline.CancelAfter(timeout);
+        try { return await operation(deadline.Token).WaitAsync(timeout, cancellation); }
+        catch (OperationCanceledException) when (!cancellation.IsCancellationRequested && !lifetime.IsCancellationRequested) { throw new TimeoutException(); }
+    }
     public async Task InitializeAsync()
     {
-        if (disposed || manager != null || initializing) return;
+        if (disposed || backend != null || initializing) return;
         initializing = true;
+        var candidate = createBackend();
         try
         {
-            var candidate = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-            if (disposed) return;
-            manager = candidate;
-            manager.SessionsChanged += SessionsChanged;
-            manager.CurrentSessionChanged += CurrentSessionChanged;
+            await Deadline(async token => { await candidate.InitializeAsync(token); return true; }, lifetime.Token);
+            if (disposed) { candidate.Dispose(); return; }
+            backend = candidate; backend.Changed += BackendChanged;
             await RefreshAsync(true);
         }
-        catch (Exception) { Reset(TextKeys.MediaUnavailable); }
+        catch (OperationCanceledException) { candidate.Dispose(); }
+        catch (Exception ex) { candidate.Dispose(); Diagnostics.Record("media-initialize", ex); Reset(TextKeys.MediaUnavailable); }
         finally { initializing = false; }
     }
-    private void SessionsChanged(GlobalSystemMediaTransportControlsSessionManager sender, SessionsChangedEventArgs args) => QueueRefresh(true);
-    private void CurrentSessionChanged(GlobalSystemMediaTransportControlsSessionManager sender, CurrentSessionChangedEventArgs args) => QueueRefresh(true);
-    private void MediaChanged(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args) => QueueSessionRefresh(sender, true);
-    private void PlaybackChanged(GlobalSystemMediaTransportControlsSession sender, PlaybackInfoChangedEventArgs args) => QueueSessionRefresh(sender, false);
-    private void TimelineChanged(GlobalSystemMediaTransportControlsSession sender, TimelinePropertiesChangedEventArgs args) => QueueSessionRefresh(sender, false);
-    private void QueueSessionRefresh(GlobalSystemMediaTransportControlsSession sender, bool metadata)
+    private void BackendChanged(object? sender, EventArgs e) => QueueRefresh(true, true);
+    private void SessionChanged(object? sender, bool metadata)
     {
         if (disposed || dispatcher.HasShutdownStarted) return;
-        dispatcher.BeginInvoke(new Action(() => { if (!disposed && sender == session) { if (metadata) { metadataRevision++; artworkPending = true; nextArtworkAttempt = DateTimeOffset.MinValue; } _ = RefreshAsync(metadata); } }));
+        dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (disposed || sender != session) return;
+            if (metadata) revision++;
+            _ = RefreshAsync(metadata);
+        }));
     }
-    private void QueueRefresh(bool metadata)
+    private void QueueRefresh(bool metadata, bool checkSession = false)
     {
         if (disposed || dispatcher.HasShutdownStarted) return;
-        dispatcher.BeginInvoke(new Action(() => { if (!disposed) _ = RefreshAsync(metadata); }));
+        dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (disposed) return;
+            try { if (checkSession) Attach(backend?.Find()); }
+            catch (Exception ex) { Recover(ex); }
+            _ = RefreshAsync(metadata);
+        }));
     }
-    private void Attach(GlobalSystemMediaTransportControlsSession? value)
+    private void Attach(IMediaSession? value)
     {
-        if (value == session) return;
-        Detach(); session = value; generation++;
-        playback = null; timeline = null; artworkPending = true; metadataDirty = true;
-        Publish(new MediaSnapshot());
-        if (session == null) return;
-        session.MediaPropertiesChanged += MediaChanged;
-        session.PlaybackInfoChanged += PlaybackChanged;
-        session.TimelinePropertiesChanged += TimelineChanged;
+        if (ReferenceEquals(session, value)) return;
+        if (session != null) session.Changed -= SessionChanged;
+        sessionLife.Cancel(); sessionLife.Dispose(); sessionLife = new();
+        session = value; generation++; revision++; playback = null; timeline = null; metadataDirty = true;
+        if (session != null) session.Changed += SessionChanged;
+        Publish(new());
     }
-    private void Detach()
+    internal async Task RefreshAsync(bool metadata)
     {
-        if (session == null) return;
-        session.MediaPropertiesChanged -= MediaChanged;
-        session.PlaybackInfoChanged -= PlaybackChanged;
-        session.TimelinePropertiesChanged -= TimelineChanged;
-        session = null;
-    }
-    private async Task RefreshAsync(bool metadata)
-    {
-        if (disposed || manager == null) return;
+        if (disposed || backend == null) return;
         requested = true; metadataDirty |= metadata;
         if (refreshing) return;
         refreshing = true;
         try
         {
-            while (requested && !disposed)
+            while (requested && !disposed && backend != null)
             {
                 requested = false;
-                var selected = manager.GetSessions().FirstOrDefault(s => s.SourceAppUserModelId.Contains("Spotify", StringComparison.OrdinalIgnoreCase));
-                Attach(selected);
-                var target = session; var token = generation;
+                Attach(backend.Find());
+                var target = session; var version = generation; var readRevision = revision;
                 if (target == null) { Reset(TextKeys.SpotifyUnavailable); continue; }
-                var readMetadata = metadataDirty;
-                metadataDirty = false;
-                if (readMetadata)
+                var cancellation = sessionLife.Token;
+                var read = metadataDirty; metadataDirty = false;
+                try
                 {
-                    var revision = metadataRevision;
-                    var props = await target.TryGetMediaPropertiesAsync();
-                    if (disposed || token != generation || session != target || revision != metadataRevision) continue;
-                    var key = props.Title + "\n" + props.Artist + "\n" + props.AlbumTitle;
-                    bool trackChanged = key != Snapshot.TrackKey;
-                    if (trackChanged) { artworkPending = true; nextArtworkAttempt = DateTimeOffset.MinValue; }
-                    Publish(Snapshot with
+                    if (read)
                     {
-                        Title = props.Title ?? "", TitleFallbackKey = TextKeys.UnknownTrack,
-                        Artist = props.Artist ?? "", Album = props.AlbumTitle ?? "", TrackKey = key,
-                        Artwork = trackChanged ? null : Snapshot.Artwork,
-                        ArtworkLoading = artworkPending
-                    });
-                    if (artworkPending && DateTimeOffset.UtcNow >= nextArtworkAttempt)
-                    {
-                        nextArtworkAttempt = DateTimeOffset.UtcNow.AddSeconds(3);
-                        try
-                        {
-                            if (props.Thumbnail != null)
-                            {
-                                using var stream = await props.Thumbnail.OpenReadAsync();
-                                using var input = stream.AsStreamForRead();
-                                var image = new BitmapImage();
-                                image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.StreamSource = input; image.EndInit(); image.Freeze();
-                                if (disposed || token != generation || session != target || Snapshot.TrackKey != key || revision != metadataRevision) continue;
-                                artworkPending = false; Publish(Snapshot with { Artwork = image, ArtworkLoading = false });
-                            }
-                            else if (!disposed && token == generation && session == target && revision == metadataRevision)
-                                Publish(Snapshot with { Artwork = null, ArtworkLoading = false });
-                        }
-                        catch (Exception)
-                        {
-                            // Confirm failure for the background while retaining independent thumbnail retries.
-                            if (!disposed && token == generation && session == target && revision == metadataRevision)
-                                Publish(Snapshot with { Artwork = null, ArtworkLoading = false });
-                        }
+                        var props = await Deadline(target.ReadAsync, cancellation);
+                        if (disposed || generation != version || revision != readRevision) continue;
+                        nextArtworkAttempt = DateTimeOffset.UtcNow.AddSeconds(5);
+                        Publish(Snapshot with { Title = props.Title, Artist = props.Artist, Album = props.Album,
+                            TitleFallbackKey = TextKeys.UnknownTrack, TrackKey = props.Key, Artwork = props.Artwork, ArtworkLoading = false });
                     }
-                    else if (Snapshot.ArtworkLoading) Publish(Snapshot with { ArtworkLoading = false });
+                    if (disposed || generation != version) continue;
+                    playback = target.Playback(); timeline = target.Timeline(); PublishPlayback();
                 }
-                if (disposed || token != generation || session != target) continue;
-                playback = target.GetPlaybackInfo(); timeline = target.GetTimelineProperties();
-                PublishPlayback();
+                catch (OperationCanceledException) when (disposed || cancellation.IsCancellationRequested) { }
             }
         }
-        catch (Exception)
-        {
-            Detach(); generation++; playback = null; timeline = null;
-            Reset(TextKeys.SpotifyUnavailable);
-        }
+        catch (Exception ex) { Recover(ex); }
         finally { refreshing = false; }
+    }
+    private void Recover(Exception ex)
+    {
+        Diagnostics.Record("media-recovery", ex);
+        Attach(null);
+        if (backend != null) { backend.Changed -= BackendChanged; backend.Dispose(); backend = null; }
+        Reset(TextKeys.SpotifyUnavailable);
+        Notice?.Invoke(this, ex is TimeoutException ? TextKeys.MediaTimedOut : TextKeys.Reconnecting);
     }
     private void PublishPlayback()
     {
-        if (playback == null || timeline == null || disposed) return;
-        var playing = playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
-        var controls = playback.Controls;
-        var duration = Math.Max(0, (timeline.EndTime - timeline.StartTime).TotalSeconds);
-        var position = PlaybackMath.Position(timeline.Position.TotalSeconds, timeline.StartTime.TotalSeconds, duration,
-            (DateTimeOffset.UtcNow - timeline.LastUpdatedTime).TotalSeconds, playback.PlaybackRate ?? 1, playing);
-        var status = playback.PlaybackStatus switch
-        {
-            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing => TextKeys.Playing,
-            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused => TextKeys.Paused,
-            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped => TextKeys.Stopped,
-            _ => TextKeys.Ready
-        };
+        if (disposed || playback == null || timeline == null) return;
+        var c = playback.Controls;
         Publish(Snapshot with
         {
-            Connected = true, Playing = playing, Status = status, Position = position, Duration = duration,
-            CanPlayPause = controls.IsPlayPauseToggleEnabled || (playing ? controls.IsPauseEnabled : controls.IsPlayEnabled),
-            CanPrevious = controls.IsPreviousEnabled, CanNext = controls.IsNextEnabled,
-            CanSeek = controls.IsPlaybackPositionEnabled && duration > 0
+            Connected = true, Playing = playback.Playing, Status = playback.Status,
+            Position = PlaybackMath.Position(timeline.Position, timeline.Start, timeline.Duration,
+                (DateTimeOffset.UtcNow - timeline.Updated).TotalSeconds, playback.Rate, playback.Playing),
+            Duration = timeline.Duration, CanPlayPause = c.PlayPause || (playback.Playing ? c.Pause : c.Play),
+            CanPrevious = c.Previous, CanNext = c.Next, CanSeek = c.Seek && timeline.Duration > 0
         });
     }
     public void Tick()
@@ -168,67 +137,58 @@ public sealed class MediaController : IMediaController
         if (disposed) return;
         PublishPlayback();
         var now = DateTimeOffset.UtcNow;
-        if (now >= nextRecovery)
-        {
-            nextRecovery = now.AddSeconds(5);
-            if (manager == null) _ = InitializeAsync();
-            else _ = RefreshAsync(session == null || (artworkPending && now >= nextArtworkAttempt));
-        }
+        if (now < nextRecovery) return;
+        nextRecovery = now.AddSeconds(5);
+        if (backend == null) _ = InitializeAsync();
+        else _ = RefreshAsync(session == null || (Snapshot.Artwork == null && now >= nextArtworkAttempt));
     }
     public async Task ExecuteAsync(MediaAction action, double fraction = 0, string? expectedTrackKey = null)
     {
-        var target = session; var token = generation;
+        var target = session; var version = generation;
         if (disposed || target == null || commandPending) return;
+        var cancellation = sessionLife.Token;
         commandPending = true;
         try
         {
-            var info = target.GetPlaybackInfo(); var controls = info.Controls;
-            bool accepted;
-            switch (action)
+            var p = target.Playback(); var c = p.Controls;
+            var allowed = action switch
             {
-                case MediaAction.PlayPause:
-                    if (controls.IsPlayPauseToggleEnabled) accepted = await target.TryTogglePlayPauseAsync();
-                    else if (info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing && controls.IsPauseEnabled) accepted = await target.TryPauseAsync();
-                    else if (info.PlaybackStatus != GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing && controls.IsPlayEnabled) accepted = await target.TryPlayAsync();
-                    else { Report(TextKeys.PlaybackUnavailable); return; }
-                    break;
-                case MediaAction.Previous:
-                    if (!controls.IsPreviousEnabled) { Report(TextKeys.PreviousUnavailable); return; }
-                    accepted = await target.TrySkipPreviousAsync(); break;
-                case MediaAction.Next:
-                    if (!controls.IsNextEnabled) { Report(TextKeys.NextUnavailable); return; }
-                    accepted = await target.TrySkipNextAsync(); break;
-                default:
-                    var properties = await target.TryGetMediaPropertiesAsync();
-                    var key = properties.Title + "\n" + properties.Artist + "\n" + properties.AlbumTitle;
-                    if (disposed || token != generation || target != session || (expectedTrackKey != null && expectedTrackKey != key))
-                    { Report(TextKeys.TrackChanged); return; }
-                    var currentTimeline = target.GetTimelineProperties();
-                    var duration = currentTimeline.EndTime - currentTimeline.StartTime;
-                    if (!controls.IsPlaybackPositionEnabled || duration <= TimeSpan.Zero) { Report(TextKeys.SeekUnavailable); return; }
-                    accepted = await target.TryChangePlaybackPositionAsync(PlaybackMath.SeekTicks(currentTimeline.StartTime.Ticks, duration.Ticks, fraction));
-                    break;
-            }
-            if (!disposed && token == generation && target == session && !accepted) Report(TextKeys.CommandRejected);
-        }
-        catch (Exception)
-        {
-            if (!disposed)
+                MediaAction.PlayPause => c.PlayPause || (p.Playing ? c.Pause : c.Play),
+                MediaAction.Previous => c.Previous, MediaAction.Next => c.Next, _ => c.Seek
+            };
+            if (!allowed) { Notice?.Invoke(this, TextKeys.PlaybackUnavailable); return; }
+            long ticks = 0;
+            if (action == MediaAction.Seek)
             {
-                Detach(); generation++; playback = null; timeline = null; Reset(TextKeys.SpotifyUnavailable);
-                Report(TextKeys.Reconnecting);
+                var readRevision = revision;
+                var props = await Deadline(target.ReadAsync, cancellation);
+                if (disposed || version != generation || readRevision != revision || (expectedTrackKey != null && expectedTrackKey != props.Key))
+                { if (!disposed) Notice?.Invoke(this, TextKeys.TrackChanged); return; }
+                var t = target.Timeline();
+                if (t.Duration <= 0) { Notice?.Invoke(this, TextKeys.SeekUnavailable); return; }
+                ticks = PlaybackMath.SeekTicks(TimeSpan.FromSeconds(t.Start).Ticks, TimeSpan.FromSeconds(t.Duration).Ticks, fraction);
             }
+            var accepted = await Deadline(token => target.ExecuteAsync(action, ticks, token), cancellation);
+            if (!disposed && version == generation && !accepted) Notice?.Invoke(this, TextKeys.CommandRejected);
         }
+        catch (OperationCanceledException) when (disposed || cancellation.IsCancellationRequested) { }
+        catch (Exception ex) { if (!disposed && version == generation) Recover(ex); }
         finally { commandPending = false; if (!disposed) await RefreshAsync(true); }
     }
     private void Reset(string status) => Publish(new MediaSnapshot { Status = status });
-    private void Publish(MediaSnapshot snapshot) { if (disposed) return; Snapshot = snapshot with { SessionVersion = generation }; Updated?.Invoke(this, Snapshot); }
-    private void Report(string message) { if (!disposed) Notice?.Invoke(this, message); }
+    private void Publish(MediaSnapshot snapshot)
+    {
+        if (disposed) return;
+        var value = snapshot with { SessionVersion = generation };
+        if (value == Snapshot) return;
+        Snapshot = value; Updated?.Invoke(this, value);
+    }
     public void Dispose()
     {
         if (disposed) return;
-        disposed = true; generation++; Detach();
-        if (manager != null) { manager.SessionsChanged -= SessionsChanged; manager.CurrentSessionChanged -= CurrentSessionChanged; }
-        manager = null; Updated = null; Notice = null;
+        disposed = true; lifetime.Cancel(); sessionLife.Cancel();
+        if (session != null) session.Changed -= SessionChanged;
+        if (backend != null) { backend.Changed -= BackendChanged; backend.Dispose(); }
+        session = null; backend = null; Updated = null; Notice = null;
     }
 }

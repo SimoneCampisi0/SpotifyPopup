@@ -34,6 +34,8 @@ internal static class Program
     private static async Task Run()
     {
         var output = Path.GetFullPath("test-results"); Directory.CreateDirectory(output);
+        Diagnostics.DirectoryPath = Path.Combine(output, "logs");
+        checks += await MediaControllerChecks.Run();
         var controller = new FakeController();
         var store = new SettingsStore(Path.Combine(output, "ui-settings.json"));
         // Deliberately start off screen to verify recovery, without touching real user settings.
@@ -104,6 +106,7 @@ internal static class Program
         Check(Localizer.Current.Culture.Name == "it" && restarted.Player.Title == "Apri Spotify e riproduci un brano", "Restart applies saved Italian before first window content");
         restarted.Close();
         await CheckTray(output);
+        checks += await DesktopChecks.Run(output);
         Console.WriteLine($"{checks} Windows UI checks passed. No real Spotify commands were issued.");
     }
     private static async Task CheckLanguages(MainWindow window, FakeController controller, SettingsStore store, string output)
@@ -235,7 +238,7 @@ internal static class Program
                     Check(((Image)about.FindName("AppLogo")).Source != null, "About reuses the embedded application logo");
                     Check(((BitmapSource)((Image)about.FindName("AppLogo")).Source).PixelWidth >= 64, "About uses a high-resolution icon frame");
                     Check(((TextBlock)about.FindName("AuthorText")).Text == "Simone Campisi", "About credits the author");
-                    Check(((TextBlock)about.FindName("VersionText")).Text == "v1.3.0", "About displays the application version");
+                    Check(((TextBlock)about.FindName("VersionText")).Text == "v1.4.0", "About displays the application version");
                     Check(((TextBox)about.FindName("LicenseText")).Text.Contains("GNU GENERAL PUBLIC LICENSE"), "Full GPL license is available offline");
                     about.UpdateLayout(); SaveImage(about, Path.Combine(output, "about.png"));
                     ((Button)about.FindName("CloseButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));

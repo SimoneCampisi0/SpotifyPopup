@@ -1,11 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
 <root>
-  <data name="About" xml:space="preserve"><value>About</value></data>
-  <data name="AboutTitle" xml:space="preserve"><value>About Spotify Popup</value></data>
-  <data name="CreatedBy" xml:space="preserve"><value>Created by</value></data>
-  <data name="License" xml:space="preserve"><value>License</value></data>
-  <data name="LicenseName" xml:space="preserve"><value>GNU General Public License v3.0</value></data>
-  <data name="LicenseText" xml:space="preserve"><value>Full GNU GPL v3.0 license text</value></data>
-  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="AboutTitle" xml:space="preserve">
+    <value>About Spotify Popup</value>
+  </data>
+  <data name="CreatedBy" xml:space="preserve">
+    <value>Created by</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>License</value>
+  </data>
+  <data name="LicenseName" xml:space="preserve">
+    <value>GNU General Public License v3.0</value>
+  </data>
+  <data name="LicenseText" xml:space="preserve">
+    <value>Full GNU GPL v3.0 license text</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -160,7 +175,7 @@
     <value>Settings could not be read. Default settings are in use.</value>
   </data>
   <data name="SettingsSaveFailed" xml:space="preserve">
-    <value>Settings could not be saved. Move the app to a writable folder to remember your preferences.</value>
+    <value>Could not save preferences. Check folder permissions and free disk space.</value>
   </data>
   <data name="TrayFailed" xml:space="preserve">
     <value>The notification icon could not be created. Keyboard shortcuts are still available.</value>
@@ -176,5 +191,140 @@
   </data>
   <data name="ShortcutBusy" xml:space="preserve">
     <value>A shortcut is already in use. Choose another combination.</value>
+  </data>
+  <data name="StartupHeading" xml:space="preserve">
+    <value>Startup</value>
+  </data>
+  <data name="StartWithWindows" xml:space="preserve">
+    <value>Start with Windows</value>
+  </data>
+  <data name="StartInTray" xml:space="preserve">
+    <value>Start in the notification area</value>
+  </data>
+  <data name="StartupHint" xml:space="preserve">
+    <value>Only for your Windows account. Keep the executable in a stable location. Saving repairs its startup path.</value>
+  </data>
+  <data name="StartupFailed" xml:space="preserve">
+    <value>Windows startup registration could not be updated. No preferences were applied.</value>
+  </data>
+  <data name="StartupMoved" xml:space="preserve">
+    <value>The Windows startup entry is missing or points elsewhere. Open Settings and save to repair it.</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="BackgroundMode" xml:space="preserve">
+    <value>Background</value>
+  </data>
+  <data name="ArtworkBackground" xml:space="preserve">
+    <value>Album artwork</value>
+  </data>
+  <data name="FixedBackground" xml:space="preserve">
+    <value>Fixed dark theme</value>
+  </data>
+  <data name="CustomBackground" xml:space="preserve">
+    <value>Custom color</value>
+  </data>
+  <data name="BackgroundColor" xml:space="preserve">
+    <value>Custom color (#RRGGBB)</value>
+  </data>
+  <data name="ColorHint" xml:space="preserve">
+    <value>Custom colors are darkened to keep text readable.</value>
+  </data>
+  <data name="AnimateBackground" xml:space="preserve">
+    <value>Animate background transitions</value>
+  </data>
+  <data name="InvalidColor" xml:space="preserve">
+    <value>Enter a color such as #24483C.</value>
+  </data>
+  <data name="VisibilityHeading" xml:space="preserve">
+    <value>Automatic visibility</value>
+  </data>
+  <data name="HideDisconnected" xml:space="preserve">
+    <value>Hide when Spotify is disconnected (after 5 seconds)</value>
+  </data>
+  <data name="HidePaused" xml:space="preserve">
+    <value>Hide after a prolonged pause</value>
+  </data>
+  <data name="PauseDelay" xml:space="preserve">
+    <value>Pause delay in seconds (10–3600)</value>
+  </data>
+  <data name="VisibilityHint" xml:space="preserve">
+    <value>Playback resumes the automatically hidden popup. Manual show/hide wins until playback or connection changes.</value>
+  </data>
+  <data name="InvalidDelay" xml:space="preserve">
+    <value>Enter a whole number between 10 and 3600.</value>
+  </data>
+  <data name="PlaybackShortcuts" xml:space="preserve">
+    <value>Playback shortcuts (optional)</value>
+  </data>
+  <data name="PlayShortcut" xml:space="preserve">
+    <value>Play / pause</value>
+  </data>
+  <data name="PreviousShortcut" xml:space="preserve">
+    <value>Previous track</value>
+  </data>
+  <data name="NextShortcut" xml:space="preserve">
+    <value>Next track</value>
+  </data>
+  <data name="BackwardShortcut" xml:space="preserve">
+    <value>Seek backward 10 seconds</value>
+  </data>
+  <data name="ForwardShortcut" xml:space="preserve">
+    <value>Seek forward 10 seconds</value>
+  </data>
+  <data name="OptionalShortcutHint" xml:space="preserve">
+    <value>Leave empty to disable. Actions require Spotify to expose the relevant control.</value>
+  </data>
+  <data name="RecoveryHeading" xml:space="preserve">
+    <value>Recovery</value>
+  </data>
+  <data name="ResetPlacement" xml:space="preserve">
+    <value>Reset window position and sizes</value>
+  </data>
+  <data name="ResetPlacementHint" xml:space="preserve">
+    <value>Applied immediately to all three layouts.</value>
+  </data>
+  <data name="ResetAll" xml:space="preserve">
+    <value>Reset all preferences…</value>
+  </data>
+  <data name="ResetConfirm" xml:space="preserve">
+    <value>Replace the settings in this dialog with defaults? Choose Save to apply them, including disabling Windows startup.</value>
+  </data>
+  <data name="EssentialMode" xml:space="preserve">
+    <value>Essential layout</value>
+  </data>
+  <data name="CheckUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="CheckingUpdates" xml:space="preserve">
+    <value>Checking for updates…</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>You have the latest stable version.</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>New version available: {0}</value>
+  </data>
+  <data name="OpenDownload" xml:space="preserve">
+    <value>Open release download</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Could not check for updates. Try again later.</value>
+  </data>
+  <data name="CopyDiagnostics" xml:space="preserve">
+    <value>Copy diagnostics</value>
+  </data>
+  <data name="DiagnosticsCopied" xml:space="preserve">
+    <value>Diagnostics copied.</value>
+  </data>
+  <data name="DiagnosticsFailed" xml:space="preserve">
+    <value>Could not copy diagnostics.</value>
+  </data>
+  <data name="MediaTimedOut" xml:space="preserve">
+    <value>Spotify took too long to respond. Reconnecting…</value>
+  </data>
+  <data name="LogoName" xml:space="preserve">
+    <value>Spotify Popup logo</value>
   </data>
 </root>
