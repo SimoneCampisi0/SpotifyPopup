@@ -70,6 +70,7 @@ internal static class DesignChecks
             Check(!((TextBox)settings.FindName("DelayBox")).IsEnabled, "Pause delay is disabled until automatic pause hiding is enabled");
             ((CheckBox)settings.FindName("PausedBox")).IsChecked = true; await Pump();
             Check(((TextBox)settings.FindName("DelayBox")).IsEnabled, "Pause hiding enables its delay field");
+            Check(((TextBox)settings.FindName("DelayBox")).ActualHeight <= 44, "Input padding is applied once and preserves a compact control height");
             settings.SelectSection(4); ((Button)settings.FindName("ResetAllButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Pump();
             Check(((Border)settings.FindName("ResetConfirmation")).IsVisible && !settings.ResetRequested, "Reset asks for an inline confirmation before changing any preferences");
             Check(((Button)settings.FindName("ConfirmResetButton")).IsDefault && !((Button)settings.FindName("SaveButton")).IsDefault, "Enter targets confirmation rather than silently saving the dialog");
