@@ -38,6 +38,13 @@ internal static class DesktopChecks
         player.Publish(track); changes.Clear(); player.Publish(track with { Position = 2 });
         Check(changes.SequenceEqual(new[] { nameof(PlayerState.Elapsed) }), "Timeline tick notifies only elapsed time");
         Check(((System.Windows.Media.GradientStop)essential.FindName("BackgroundStart")).Color.R == ArtworkPalette.Default.Start.R, "Fixed background is applied without animation");
+        essential.UpdateLayout();
+        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)essential.ActualWidth, (int)essential.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(essential); var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder(); encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using (var stream = System.IO.File.Create(System.IO.Path.Combine(output, "essential.png"))) encoder.Save(stream);
+        essential.Player.SetNotice(TextKeys.SettingsSaveFailed); await Dispatcher.Yield();
+        essential.Player.SetNotice(""); await Dispatcher.Yield();
+        Check(essential.Height == settings.Essential.Height, "Temporary notice does not permanently enlarge essential layout");
         essential.Close();
         using var hotkeyWindow = new SourceWindow();
         var source = HwndSource.FromHwnd(new WindowInteropHelper(hotkeyWindow.Window).EnsureHandle());

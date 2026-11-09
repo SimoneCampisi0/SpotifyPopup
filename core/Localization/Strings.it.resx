@@ -175,7 +175,7 @@
     <value>Impossibile leggere le impostazioni. Sono in uso quelle predefinite.</value>
   </data>
   <data name="SettingsSaveFailed" xml:space="preserve">
-    <value>Impossibile salvare le impostazioni. Sposta l'app in una cartella scrivibile per conservare le preferenze.</value>
+    <value>Impossibile salvare le preferenze. Controlla permessi e spazio disponibile.</value>
   </data>
   <data name="TrayFailed" xml:space="preserve">
     <value>Impossibile creare l'icona nell'area di notifica. Le scorciatoie da tastiera restano disponibili.</value>

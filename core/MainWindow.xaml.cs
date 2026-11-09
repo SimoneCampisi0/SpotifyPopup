@@ -27,6 +27,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly StartupRegistration startup = new();
     private bool runtimeStarted, automaticallyHidden;
     private bool refreshingVisuals;
+    private double? heightBeforeNotice;
     private HwndSource? source;
     private HotkeyManager? hotkeys;
     private Forms.NotifyIcon? tray;
@@ -68,7 +69,23 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
     private void PlayerChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(PlayerState.Notice) or "") AdjustNoticeHeight();
         if (e.PropertyName is nameof(PlayerState.Album) or nameof(PlayerState.Connected) or nameof(PlayerState.Notice) or "") Changed();
+    }
+    private double BaseMinimumHeight => settings.EssentialMode ? 112 : settings.CompactMode ? 138 : 255;
+    private void AdjustNoticeHeight()
+    {
+        if (!string.IsNullOrEmpty(Player.Notice) && (settings.CompactMode || settings.EssentialMode))
+        {
+            heightBeforeNotice ??= Height;
+            MinHeight = settings.EssentialMode ? 156 : 190;
+            Height = Math.Max(Height, MinHeight);
+        }
+        else
+        {
+            var previous = heightBeforeNotice; heightBeforeNotice = null; MinHeight = BaseMinimumHeight;
+            if (previous.HasValue) Height = Math.Max(MinHeight, previous.Value);
+        }
     }
     private void Changed() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     private void LanguageChanged(object? sender, PropertyChangedEventArgs e)
@@ -296,7 +313,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         if (restoring || !IsLoaded || WindowState != WindowState.Normal) return;
         var bounds = NativeMethods.Bounds(this);
-        Placement.X = bounds.Left; Placement.Y = bounds.Top; Placement.Width = ActualWidth; Placement.Height = ActualHeight;
+        Placement.X = bounds.Left; Placement.Y = bounds.Top; Placement.Width = ActualWidth; Placement.Height = heightBeforeNotice ?? ActualHeight;
     }
     private void ApplyLayout()
     {
@@ -305,8 +322,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         NormalLayout.Visibility = !compact && !essential ? Visibility.Visible : Visibility.Collapsed;
         CompactLayout.Visibility = compact && !essential ? Visibility.Visible : Visibility.Collapsed;
         EssentialLayout.Visibility = essential ? Visibility.Visible : Visibility.Collapsed;
+        heightBeforeNotice = null;
         Width = Math.Max(MinWidth, Placement.Width); Height = Math.Max(MinHeight, Placement.Height);
-        Changed();
+        AdjustNoticeHeight(); Changed();
     }
     private void RestorePosition()
     {

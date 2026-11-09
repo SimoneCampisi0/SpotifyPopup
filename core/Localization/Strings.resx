@@ -175,7 +175,7 @@
     <value>Settings could not be read. Default settings are in use.</value>
   </data>
   <data name="SettingsSaveFailed" xml:space="preserve">
-    <value>Settings could not be saved. Move the app to a writable folder to remember your preferences.</value>
+    <value>Could not save preferences. Check folder permissions and free disk space.</value>
   </data>
   <data name="TrayFailed" xml:space="preserve">
     <value>The notification icon could not be created. Keyboard shortcuts are still available.</value>
