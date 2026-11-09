@@ -13,6 +13,8 @@ public sealed record MediaSnapshot
     public string Album { get; init; } = "";
     public string Status { get; init; } = TextKeys.SpotifyUnavailable;
     public ImageSource? Artwork { get; init; }
+    public bool ArtworkLoading { get; init; }
+    public int SessionVersion { get; init; }
     public bool Connected { get; init; }
     public bool Playing { get; init; }
     public bool CanPlayPause { get; init; }

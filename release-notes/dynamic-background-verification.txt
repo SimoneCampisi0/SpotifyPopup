@@ -1,0 +1,25 @@
+Dynamic artwork background — implementation and verification
+
+Implementation
+- MediaController reports artwork loading and session identity, rejects outdated thumbnail reads, and retains thumbnail retry behavior.
+- ArtworkPaletteExtractor groups 64-pixel thumbnail colors using alpha-weighted RGB quantization, chooses two distinct representative colors and creates tonal variants for monochrome covers.
+- Saturation and brightness are limited before applying a diagonal gradient. Enabled metadata contrast is checked for bright synthetic covers.
+- ArtworkBackgroundService runs analysis on worker threads using frozen images. Content hashes reuse palettes across image instances and tracks. A 64-entry cache limits memory use.
+- Requests are canceled and versioned. Progress ticks do not restart analysis. Session replacement, missing artwork, errors and window closure invalidate pending results.
+- MainWindow animates gradient colors over 500 ms and starts interrupted transitions from their visible colors.
+- About opens as an owned modal from Settings, displays the embedded logo and author, and reads the full GPL v3 license from an embedded resource without network access.
+
+Automated verification
+- Pure logic checks: dominant colors, distinct secondary color, determinism, monochrome covers, text contrast, transparent/empty inputs, partial alpha and cancellation.
+- Windows checks: no recalculation for progress, stale track/session results, loading and failure fallback, shutdown, content-based cache reuse and cache size limit.
+- Window checks: actual gradient updates, interrupted transition continuity, fallback, red/blue/white/black/green/two-color covers, normal and compact screenshots, locked-mode screenshot.
+- About checks: Settings entry point, owned dialog, logo, version, author, embedded license, Close action and unchanged Settings selection.
+- Existing playback, settings persistence, localization, lock/unlock and startup checks remain in the release pipeline.
+
+Manual follow-up on a Windows desktop with Spotify
+- Check actual late thumbnail updates, rapid track changes and switching media sessions.
+- Check rendering on light and dark desktop content at the user's chosen locked opacity.
+- Check long metadata at minimum sizes and mixed-DPI monitor movement.
+- Check screen-reader announcement and keyboard focus in Settings and About.
+
+These manual checks are not claimed as completed by CI. UI images use a simulated controller and do not issue real Spotify playback commands.

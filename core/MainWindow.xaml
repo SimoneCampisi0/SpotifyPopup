@@ -60,7 +60,7 @@
   </DataTemplate>
  </Window.Resources>
  <Border x:Name="RootSurface" Margin="1" CornerRadius="18" BorderThickness="1" BorderBrush="#68FFFFFF" MouseLeftButtonDown="OnDrag">
-  <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#F32F3D39" Offset="0"/><GradientStop Color="#F31C2626" Offset="0.52"/><GradientStop Color="#F20C1515" Offset="1"/></LinearGradientBrush></Border.Background>
+  <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop x:Name="BackgroundStart" Color="#F32F3D39" Offset="0"/><GradientStop x:Name="BackgroundEnd" Color="#F30C1515" Offset="1"/></LinearGradientBrush></Border.Background>
   <Border.ContextMenu><ContextMenu>
    <MenuItem Header="{loc:Text Hide}" Click="HideClick"/>
    <MenuItem Header="{loc:Text SwitchLayout}" Click="CompactClick"/>

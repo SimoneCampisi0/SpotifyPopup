@@ -6,6 +6,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
@@ -15,6 +16,8 @@ namespace SpotifyPopup;
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
     private readonly IMediaController media;
+    private readonly ArtworkBackgroundService artworkBackground;
+    private ArtworkPalette currentPalette = ArtworkPalette.Default;
     private readonly SettingsStore store;
     private readonly bool enableShell;
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
@@ -44,6 +47,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         this.enableShell = enableShell; store = settingsStore ?? new SettingsStore(); settings = store.Load(out startupWarning);
         Localizer.Current.Apply(settings.Language);
         InitializeComponent(); DataContext = this;
+        artworkBackground = new ArtworkBackgroundService(Dispatcher, ApplyPalette);
         Localizer.Current.PropertyChanged += LanguageChanged;
         media = controller ?? new MediaController(Dispatcher);
         media.Updated += OnMediaUpdated; media.Notice += OnNotice;
@@ -92,6 +96,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (!Dispatcher.CheckAccess()) { Dispatcher.BeginInvoke(new Action(() => OnMediaUpdated(sender, snapshot))); return; }
         if (editingSlider != null && (!snapshot.CanSeek || editingTrackKey != snapshot.TrackKey)) CancelSeek();
         Player.Apply(snapshot);
+        _ = artworkBackground.UpdateAsync(snapshot);
         if (editingSlider == null) UpdateProgress(snapshot);
     }
     private void UpdateProgress(MediaSnapshot snapshot)
@@ -99,6 +104,24 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var value = snapshot.Duration > 0 ? Math.Clamp(snapshot.Position / snapshot.Duration * 100, 0, 100) : 0;
         NormalProgress.Value = CompactProgress.Value = value;
         NormalElapsed.Text = CompactElapsed.Text = PlaybackMath.Format(snapshot.Position);
+    }
+    private void ApplyPalette(ArtworkPalette palette)
+    {
+        if (closed || palette == currentPalette) return;
+        currentPalette = palette;
+        static void Animate(GradientStop stop, ArtworkColor color)
+        {
+            var from = stop.Color; // Includes the current animation value when a track interrupts it.
+            var target = Color.FromArgb(243, color.R, color.G, color.B);
+            stop.BeginAnimation(GradientStop.ColorProperty, null);
+            stop.Color = target;
+            stop.BeginAnimation(GradientStop.ColorProperty, new ColorAnimation(from, target, TimeSpan.FromMilliseconds(500))
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+            }, HandoffBehavior.SnapshotAndReplace);
+        }
+        Animate(BackgroundStart, palette.Start); Animate(BackgroundEnd, palette.End);
     }
     private void OnNotice(object? sender, string message)
     {
@@ -329,6 +352,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         if (closed) return;
         CapturePlacement(); store.Save(settings); closed = true;
+        artworkBackground.Dispose();
+        BackgroundStart.BeginAnimation(GradientStop.ColorProperty, null); BackgroundEnd.BeginAnimation(GradientStop.ColorProperty, null);
         timer.Stop(); saveTimer.Stop(); media.Updated -= OnMediaUpdated; media.Notice -= OnNotice; media.Dispose();
         Localizer.Current.PropertyChanged -= LanguageChanged; Player.Dispose();
         if (enableShell) SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;

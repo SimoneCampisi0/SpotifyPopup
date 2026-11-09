@@ -1,0 +1,15 @@
+Spotify Popup v1.3.0 — artwork colors and About
+
+- The popup now uses a diagonal background gradient derived from the current track's cover artwork.
+- Two representative colors are darkened and desaturated for readable text and controls, with a smooth 500 ms transition between covers.
+- Monochrome artwork uses two tonal variations; missing, transparent or invalid artwork restores a dark default background.
+- Palette analysis runs in the background, reuses a bounded in-memory cache, and ignores outdated results during rapid track or media-session changes.
+- Artwork loading preserves the visible background until a new cover or a confirmed fallback is ready. Late artwork and temporary thumbnail failures are retried independently of playback controls.
+- Settings now includes an About link. Its popup shows the original application logo, version, author Simone Campisi, and the GNU General Public License v3.0, including the full license available offline.
+- The new About text is in English. Existing language settings remain available.
+
+Download SpotifyPopup.exe for 64-bit Windows 10 version 2004 or later, or Windows 11. The executable is self-contained; no separate .NET installation or Spotify API credentials are required.
+
+Verification: the Windows release pipeline runs palette and playback/persistence regression checks, asynchronous artwork and isolated UI checks, a standalone publish, and executable startup/shutdown and icon checks before publishing the executable and SHA-256 checksum.
+
+Real Spotify playback, screen-reader behavior and mixed-DPI multi-monitor interactions still require hands-on validation. Locked mode retains the selected window opacity; contrast over arbitrary desktop content depends on that opacity.

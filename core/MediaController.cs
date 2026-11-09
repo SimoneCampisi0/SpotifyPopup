@@ -13,7 +13,7 @@ public sealed class MediaController : IMediaController
     private GlobalSystemMediaTransportControlsSessionTimelineProperties? timeline;
     private bool disposed, refreshing, requested, metadataDirty, commandPending, initializing;
     private bool artworkPending;
-    private int generation;
+    private int generation, metadataRevision;
     private DateTimeOffset nextRecovery, nextArtworkAttempt;
     public MediaSnapshot Snapshot { get; private set; } = new();
     public event EventHandler<MediaSnapshot>? Updated;
@@ -44,7 +44,7 @@ public sealed class MediaController : IMediaController
     private void QueueSessionRefresh(GlobalSystemMediaTransportControlsSession sender, bool metadata)
     {
         if (disposed || dispatcher.HasShutdownStarted) return;
-        dispatcher.BeginInvoke(new Action(() => { if (!disposed && sender == session) { if (metadata) { artworkPending = true; nextArtworkAttempt = DateTimeOffset.MinValue; } _ = RefreshAsync(metadata); } }));
+        dispatcher.BeginInvoke(new Action(() => { if (!disposed && sender == session) { if (metadata) { metadataRevision++; artworkPending = true; nextArtworkAttempt = DateTimeOffset.MinValue; } _ = RefreshAsync(metadata); } }));
     }
     private void QueueRefresh(bool metadata)
     {
@@ -89,8 +89,9 @@ public sealed class MediaController : IMediaController
                 metadataDirty = false;
                 if (readMetadata)
                 {
+                    var revision = metadataRevision;
                     var props = await target.TryGetMediaPropertiesAsync();
-                    if (disposed || token != generation || session != target) continue;
+                    if (disposed || token != generation || session != target || revision != metadataRevision) continue;
                     var key = props.Title + "\n" + props.Artist + "\n" + props.AlbumTitle;
                     bool trackChanged = key != Snapshot.TrackKey;
                     if (trackChanged) { artworkPending = true; nextArtworkAttempt = DateTimeOffset.MinValue; }
@@ -98,7 +99,8 @@ public sealed class MediaController : IMediaController
                     {
                         Title = props.Title ?? "", TitleFallbackKey = TextKeys.UnknownTrack,
                         Artist = props.Artist ?? "", Album = props.AlbumTitle ?? "", TrackKey = key,
-                        Artwork = trackChanged ? null : Snapshot.Artwork
+                        Artwork = trackChanged ? null : Snapshot.Artwork,
+                        ArtworkLoading = artworkPending
                     });
                     if (artworkPending && DateTimeOffset.UtcNow >= nextArtworkAttempt)
                     {
@@ -111,12 +113,20 @@ public sealed class MediaController : IMediaController
                                 using var input = stream.AsStreamForRead();
                                 var image = new BitmapImage();
                                 image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.StreamSource = input; image.EndInit(); image.Freeze();
-                                if (disposed || token != generation || session != target || Snapshot.TrackKey != key) continue;
-                                artworkPending = false; Publish(Snapshot with { Artwork = image });
+                                if (disposed || token != generation || session != target || Snapshot.TrackKey != key || revision != metadataRevision) continue;
+                                artworkPending = false; Publish(Snapshot with { Artwork = image, ArtworkLoading = false });
                             }
+                            else if (!disposed && token == generation && session == target && revision == metadataRevision)
+                                Publish(Snapshot with { Artwork = null, ArtworkLoading = false });
                         }
-                        catch (Exception) { /* Keep metadata usable and retry artwork independently. */ }
+                        catch (Exception)
+                        {
+                            // Confirm failure for the background while retaining independent thumbnail retries.
+                            if (!disposed && token == generation && session == target && revision == metadataRevision)
+                                Publish(Snapshot with { Artwork = null, ArtworkLoading = false });
+                        }
                     }
+                    else if (Snapshot.ArtworkLoading) Publish(Snapshot with { ArtworkLoading = false });
                 }
                 if (disposed || token != generation || session != target) continue;
                 playback = target.GetPlaybackInfo(); timeline = target.GetTimelineProperties();
@@ -212,7 +222,7 @@ public sealed class MediaController : IMediaController
         finally { commandPending = false; if (!disposed) await RefreshAsync(true); }
     }
     private void Reset(string status) => Publish(new MediaSnapshot { Status = status });
-    private void Publish(MediaSnapshot snapshot) { if (disposed) return; Snapshot = snapshot; Updated?.Invoke(this, snapshot); }
+    private void Publish(MediaSnapshot snapshot) { if (disposed) return; Snapshot = snapshot with { SessionVersion = generation }; Updated?.Invoke(this, Snapshot); }
     private void Report(string message) { if (!disposed) Notice?.Invoke(this, message); }
     public void Dispose()
     {
