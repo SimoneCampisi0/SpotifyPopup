@@ -233,6 +233,7 @@ internal static class Program
                 {
                     Check(about.Owner == settings && about.Title == "About Spotify Popup", "Settings opens an owned About popup");
                     Check(((Image)about.FindName("AppLogo")).Source != null, "About reuses the embedded application logo");
+                    Check(((BitmapSource)((Image)about.FindName("AppLogo")).Source).PixelWidth >= 64, "About uses a high-resolution icon frame");
                     Check(((TextBlock)about.FindName("AuthorText")).Text == "Simone Campisi", "About credits the author");
                     Check(((TextBlock)about.FindName("VersionText")).Text == "v1.3.0", "About displays the application version");
                     Check(((TextBox)about.FindName("LicenseText")).Text.Contains("GNU GENERAL PUBLIC LICENSE"), "Full GPL license is available offline");
