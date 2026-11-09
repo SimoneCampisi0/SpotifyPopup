@@ -6,6 +6,10 @@ A small, always-on-top Spotify player for Windows. Keep your music controls with
 
 [![Windows checks and release](https://github.com/SimoneCampisi0/SpotifyPopup/actions/workflows/windows-release.yml/badge.svg)](https://github.com/SimoneCampisi0/SpotifyPopup/actions/workflows/windows-release.yml)
 
+![Spotify Popup v1.5.0 player](assets/player-preview.png)
+
+*Preview with sample artwork and metadata. Your music is supplied by Spotify.*
+
 ## Design in v1.5.0
 
 The player uses a shared charcoal-and-mint design across the overlay, Settings, About and notification-area menu. Cover artwork, title and playback are the visual priorities. Controls keep their sizes when resizing the player; only artwork is scaled in smaller layouts.
