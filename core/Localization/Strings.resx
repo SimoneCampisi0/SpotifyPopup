@@ -31,7 +31,7 @@
     <value>Spotify Popup settings</value>
   </data>
   <data name="SettingsHeading" xml:space="preserve">
-    <value>Make it yours</value>
+    <value>Settings</value>
   </data>
   <data name="ShowAlbum" xml:space="preserve">
     <value>Show album</value>
@@ -43,16 +43,16 @@
     <value>Locked opacity</value>
   </data>
   <data name="OpacityHint" xml:space="preserve">
-    <value>Preview appears on the popup. Unlock stays visible.</value>
+    <value>Used only when the player is locked. Preview updates as you drag.</value>
   </data>
   <data name="ToggleShortcut" xml:space="preserve">
-    <value>Show / hide shortcut</value>
+    <value>Show / hide player</value>
   </data>
   <data name="UnlockShortcut" xml:space="preserve">
-    <value>Unlock and show shortcut</value>
+    <value>Unlock player</value>
   </data>
   <data name="ShortcutHint" xml:space="preserve">
-    <value>Example: Ctrl+Alt+P. Shortcuts must be different.</value>
+    <value>These two shortcuts are required. Duplicates and occupied combinations are detected when saving.</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
@@ -64,7 +64,7 @@
     <value>Language / Lingua</value>
   </data>
   <data name="LanguageHint" xml:space="preserve">
-    <value>Applied when you save. Cancel keeps the current language.</value>
+    <value>Choose a language, or follow Windows.</value>
   </data>
   <data name="SystemLanguage" xml:space="preserve">
     <value>System / Sistema</value>
@@ -76,7 +76,7 @@
     <value>Show</value>
   </data>
   <data name="SwitchLayout" xml:space="preserve">
-    <value>Switch layout</value>
+    <value>Switch comfortable / compact</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
@@ -124,7 +124,7 @@
     <value>Pause</value>
   </data>
   <data name="OpenSpotifyPrompt" xml:space="preserve">
-    <value>Open Spotify and play a track</value>
+    <value>Your music starts here</value>
   </data>
   <data name="SpotifyUnavailable" xml:space="preserve">
     <value>Spotify unavailable</value>
@@ -202,7 +202,7 @@
     <value>Start in the notification area</value>
   </data>
   <data name="StartupHint" xml:space="preserve">
-    <value>Only for your Windows account. Keep the executable in a stable location. Saving repairs its startup path.</value>
+    <value>Starts at sign-in for your account. If you move the app, save these settings again to update its path.</value>
   </data>
   <data name="StartupFailed" xml:space="preserve">
     <value>Windows startup registration could not be updated. No preferences were applied.</value>
@@ -241,13 +241,13 @@
     <value>Automatic visibility</value>
   </data>
   <data name="HideDisconnected" xml:space="preserve">
-    <value>Hide when Spotify is disconnected (after 5 seconds)</value>
+    <value>Hide when Spotify disconnects</value>
   </data>
   <data name="HidePaused" xml:space="preserve">
     <value>Hide after a prolonged pause</value>
   </data>
   <data name="PauseDelay" xml:space="preserve">
-    <value>Pause delay in seconds (10–3600)</value>
+    <value>Pause delay (seconds)</value>
   </data>
   <data name="VisibilityHint" xml:space="preserve">
     <value>Playback resumes the automatically hidden popup. Manual show/hide wins until playback or connection changes.</value>
@@ -274,7 +274,7 @@
     <value>Seek forward 10 seconds</value>
   </data>
   <data name="OptionalShortcutHint" xml:space="preserve">
-    <value>Leave empty to disable. Actions require Spotify to expose the relevant control.</value>
+    <value>Optional: leave empty to disable. Availability depends on Spotify.</value>
   </data>
   <data name="RecoveryHeading" xml:space="preserve">
     <value>Recovery</value>
@@ -292,7 +292,7 @@
     <value>Replace the settings in this dialog with defaults? Choose Save to apply them, including disabling Windows startup.</value>
   </data>
   <data name="EssentialMode" xml:space="preserve">
-    <value>Essential layout</value>
+    <value>Toggle essential layout</value>
   </data>
   <data name="CheckUpdates" xml:space="preserve">
     <value>Check for updates</value>
@@ -326,5 +326,83 @@
   </data>
   <data name="LogoName" xml:space="preserve">
     <value>Spotify Popup logo</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Player menu</value>
+  </data>
+  <data name="GeneralSection" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="GeneralDescription" xml:space="preserve">
+    <value>Ready when you are. Make the player part of your day.</value>
+  </data>
+  <data name="AppearanceDescription" xml:space="preserve">
+    <value>A quieter canvas. A little more you.</value>
+  </data>
+  <data name="VisibilityDescription" xml:space="preserve">
+    <value>Keep your music in sight, on your terms.</value>
+  </data>
+  <data name="ShortcutsSection" xml:space="preserve">
+    <value>Shortcuts</value>
+  </data>
+  <data name="ShortcutsDescription" xml:space="preserve">
+    <value>Your controls, one key combination away.</value>
+  </data>
+  <data name="RecoveryDescription" xml:space="preserve">
+    <value>A fresh start, without reinstalling.</value>
+  </data>
+  <data name="PlayerHeading" xml:space="preserve">
+    <value>Player</value>
+  </data>
+  <data name="LanguageSection" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="SettingsSaveHint" xml:space="preserve">
+    <value>Changes apply when you save.</value>
+  </data>
+  <data name="ShortcutCaptureHint" xml:space="preserve">
+    <value>Select a field and press a key combination. Backspace clears it. Tab moves to the next field.</value>
+  </data>
+  <data name="ConfirmReset" xml:space="preserve">
+    <value>Use defaults</value>
+  </data>
+  <data name="DefaultsReady" xml:space="preserve">
+    <value>Defaults loaded. Save to apply, or Cancel to keep your preferences.</value>
+  </data>
+  <data name="AboutTagline" xml:space="preserve">
+    <value>A small space for your music.</value>
+  </data>
+  <data name="ReadLicense" xml:space="preserve">
+    <value>Read the license</value>
+  </data>
+  <data name="HideLicense" xml:space="preserve">
+    <value>Hide the license</value>
+  </data>
+  <data name="UpdatesHeading" xml:space="preserve">
+    <value>Stay up to date</value>
+  </data>
+  <data name="UpdatesHint" xml:space="preserve">
+    <value>Checks GitHub only when you ask.</value>
+  </data>
+  <data name="DiagnosticsHint" xml:space="preserve">
+    <value>Copy technical details to help troubleshoot a problem.</value>
+  </data>
+  <data name="LayoutNormal" xml:space="preserve">
+    <value>Comfortable</value>
+  </data>
+  <data name="LayoutCompact" xml:space="preserve">
+    <value>Compact</value>
+  </data>
+  <data name="LayoutEssential" xml:space="preserve">
+    <value>Essential</value>
+  </data>
+  <data name="LayoutHeading" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="LayoutHint" xml:space="preserve">
+    <value>Switch from the player menu. Each layout remembers its size.</value>
+  </data>
+  <data name="VisibilitySection" xml:space="preserve">
+    <value>Visibility</value>
   </data>
 </root>

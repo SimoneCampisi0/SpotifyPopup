@@ -1,128 +1,269 @@
-<Window x:Class="SpotifyPopup.SettingsWindow"
- xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:loc="clr-namespace:SpotifyPopup"
- Title="{loc:Text SettingsTitle}" Width="540" Height="740" MinWidth="460" MinHeight="540" WindowStartupLocation="CenterOwner"
- Background="#172522" Foreground="#EAF6F3" ShowInTaskbar="False" ResizeMode="CanResize" Icon="/SpotifyPopup;component/Assets/logo.ico">
+<Window x:Class="SpotifyPopup.SettingsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:loc="clr-namespace:SpotifyPopup" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+ Title="{loc:Text SettingsTitle}" Width="800" Height="700" MinWidth="720" MinHeight="560" WindowStartupLocation="CenterOwner" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Foreground="#F3F5F7" FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13" ShowInTaskbar="False" ResizeMode="CanResize" Icon="/SpotifyPopup;component/Assets/logo.ico" UseLayoutRounding="True">
+ <shell:WindowChrome.WindowChrome>
+<shell:WindowChrome CaptionHeight="56" ResizeBorderThickness="6" GlassFrameThickness="0"/>
+</shell:WindowChrome.WindowChrome>
  <Window.Resources>
-  <Style TargetType="TextBlock">
-<Setter Property="Foreground" Value="#EAF6F3"/>
-</Style>
-  <Style TargetType="CheckBox">
-<Setter Property="Foreground" Value="#EAF6F3"/>
-<Setter Property="Margin" Value="0,0,0,12"/>
-</Style>
-  <Style TargetType="TextBox">
-<Setter Property="Padding" Value="8,6"/>
-<Setter Property="Background" Value="#2E423B"/>
-<Setter Property="Foreground" Value="White"/>
-<Setter Property="BorderBrush" Value="#7A9A8A"/>
-</Style>
-  <Style TargetType="Button">
-<Setter Property="Padding" Value="16,7"/>
-<Setter Property="Margin" Value="8,0,0,0"/>
-</Style>
-  <Style x:Key="AboutLink" TargetType="Button">
-   <Setter Property="Template">
-<Setter.Value>
-<ControlTemplate TargetType="Button">
-    <Border x:Name="LinkSurface" Padding="{TemplateBinding Padding}" BorderBrush="Transparent" BorderThickness="1" CornerRadius="3">
-     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-    </Border>
-    <ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True">
-<Setter Property="Foreground" Value="White"/>
-<Setter TargetName="LinkSurface" Property="Background" Value="#203F6552"/>
-</Trigger>
-     <Trigger Property="IsKeyboardFocused" Value="True">
-<Setter TargetName="LinkSurface" Property="BorderBrush" Value="White"/>
-</Trigger>
-    </ControlTemplate.Triggers>
-   </ControlTemplate>
-</Setter.Value>
-</Setter>
-  </Style>
- </Window.Resources>
- <Grid Margin="24">
-  <Grid.RowDefinitions>
-<RowDefinition Height="Auto"/>
+<ResourceDictionary>
+<ResourceDictionary.MergedDictionaries>
+<ResourceDictionary Source="Theme.xaml"/>
+</ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>
+</Window.Resources>
+ <Border CornerRadius="20" Background="{StaticResource CanvasBrush}" BorderBrush="#454C55" BorderThickness="1" Margin="1">
+ <Grid>
+<Grid.RowDefinitions>
+<RowDefinition Height="56"/>
 <RowDefinition Height="*"/>
 <RowDefinition Height="Auto"/>
+<RowDefinition Height="76"/>
 </Grid.RowDefinitions>
-  <TextBlock Text="{loc:Text SettingsHeading}" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,20"/>
-  <ScrollViewer x:Name="SettingsScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-   <StackPanel>
-<TextBlock Text="{loc:Text StartupHeading}" FontSize="16" FontWeight="SemiBold" Margin="0,16,0,12"/>
-<CheckBox x:Name="StartupBox" Content="{loc:Text StartWithWindows}" AutomationProperties.Name="{loc:Text StartWithWindows}"/>
-<CheckBox x:Name="TrayBox" Content="{loc:Text StartInTray}" AutomationProperties.Name="{loc:Text StartInTray}"/>
-<TextBlock Text="{loc:Text StartupHint}" TextWrapping="Wrap" Foreground="#B7CEC2" FontSize="11" Margin="0,0,0,12"/>
-<TextBlock Text="{loc:Text Appearance}" FontSize="16" FontWeight="SemiBold" Margin="0,16,0,12"/>
-    <Label Target="{Binding ElementName=LanguageBox}" Foreground="#EAF6F3" Padding="0" Content="{loc:Text Language}"/>
-    <ComboBox x:Name="LanguageBox" SelectedValuePath="Tag" Margin="0,6,0,0" Padding="8,6" Foreground="#10261E" Background="#EAF6F3" AutomationProperties.Name="{loc:Text Language}">
-     <ComboBoxItem Tag="auto" Content="{loc:Text SystemLanguage}"/>
-     <ComboBoxItem Tag="en" Content="English"/>
-     <ComboBoxItem Tag="it" Content="Italiano"/>
-    </ComboBox>
-    <TextBlock Text="{loc:Text LanguageHint}" FontSize="11" Foreground="#B7CEC2" TextWrapping="Wrap" Margin="0,3,0,15"/>
-    <CheckBox x:Name="ShowAlbumBox" Content="{loc:Text ShowAlbum}" AutomationProperties.Name="{loc:Text ShowAlbum}"/>
-    <CheckBox x:Name="SnapBox" Content="{loc:Text SnapEdges}" AutomationProperties.Name="{loc:Text SnapEdges}"/>
-    <Label Target="{Binding ElementName=OpacitySlider}" Foreground="#EAF6F3" Padding="0" Content="{loc:Text LockedOpacity}"/>
-    <Grid Margin="0,7,0,0">
+  <Grid Margin="22,0,14,0">
+<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+<Image Source="/SpotifyPopup;component/Assets/logo.ico" Width="20" Height="20" Margin="0,0,10,0"/>
+<TextBlock Text="Spotify Popup" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+</StackPanel>
+   <Button Content="&#xE8BB;" Style="{StaticResource GlassButton}" HorizontalAlignment="Right" VerticalAlignment="Center" IsCancel="True" Click="CancelClick" ToolTip="{loc:Text Close}" AutomationProperties.Name="{loc:Text Close}" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+  </Grid>
+  <Grid Grid.Row="1">
 <Grid.ColumnDefinitions>
+<ColumnDefinition Width="176"/>
 <ColumnDefinition Width="*"/>
-<ColumnDefinition Width="48"/>
 </Grid.ColumnDefinitions>
-     <Slider x:Name="OpacitySlider" Minimum="25" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OpacityChanged" AutomationProperties.Name="{loc:Text LockedOpacity}"/>
-     <TextBlock x:Name="OpacityValue" Grid.Column="1" HorizontalAlignment="Right"/>
-    </Grid>
-    <TextBlock Text="{loc:Text OpacityHint}" FontSize="11" Foreground="#B7CEC2" TextWrapping="Wrap" Margin="0,3,0,15"/>
-    <Label Target="{Binding ElementName=ToggleBox}" Foreground="#EAF6F3" Padding="0" Content="{loc:Text ToggleShortcut}"/>
-    <TextBox x:Name="ToggleBox" Margin="0,6,0,12" AutomationProperties.Name="{loc:Text ToggleShortcut}"/>
-    <Label Target="{Binding ElementName=UnlockBox}" Foreground="#EAF6F3" Padding="0" Content="{loc:Text UnlockShortcut}"/>
-    <TextBox x:Name="UnlockBox" Margin="0,6,0,7" AutomationProperties.Name="{loc:Text UnlockShortcut}"/>
-    <TextBlock Text="{loc:Text ShortcutHint}" FontSize="11" Foreground="#B7CEC2" TextWrapping="Wrap"/>
-<TextBlock Text="{loc:Text Appearance}" FontSize="16" FontWeight="SemiBold" Margin="0,16,0,12"/>
-<Label Target="{Binding ElementName=BackgroundBox}" Content="{loc:Text BackgroundMode}" Foreground="#EAF6F3" Padding="0"/>
-<ComboBox x:Name="BackgroundBox" SelectedValuePath="Tag" Margin="0,6,0,12" Padding="8,6" AutomationProperties.Name="{loc:Text BackgroundMode}">
+   <Border BorderBrush="#2A3037" BorderThickness="0,0,1,0" Padding="12,14,12,16">
+<DockPanel LastChildFill="True">
+    <Button x:Name="AboutButton" DockPanel.Dock="Bottom" Content="{loc:Text About}" Style="{StaticResource QuietButton}" Click="AboutClick" HorizontalAlignment="Stretch" AutomationProperties.Name="{loc:Text AboutTitle}"/>
+    <ListBox x:Name="Navigation" Background="Transparent" BorderThickness="0" Foreground="{StaticResource MutedBrush}" SelectionChanged="NavigationChanged" ItemContainerStyle="{StaticResource NavigationItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="{loc:Text SettingsHeading}">
+<ListBoxItem>
+<StackPanel Orientation="Horizontal">
+<TextBlock Text="" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Margin="0,0,10,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+<TextBlock Text="{loc:Text GeneralSection}" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+</StackPanel>
+</ListBoxItem>
+<ListBoxItem>
+<StackPanel Orientation="Horizontal">
+<TextBlock Text="" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Margin="0,0,10,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+<TextBlock Text="{loc:Text Appearance}" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+</StackPanel>
+</ListBoxItem>
+<ListBoxItem>
+<StackPanel Orientation="Horizontal">
+<TextBlock Text="" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Margin="0,0,10,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+<TextBlock Text="{loc:Text VisibilitySection}" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+</StackPanel>
+</ListBoxItem>
+<ListBoxItem>
+<StackPanel Orientation="Horizontal">
+<TextBlock Text="" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Margin="0,0,10,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+<TextBlock Text="{loc:Text ShortcutsSection}" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+</StackPanel>
+</ListBoxItem>
+<ListBoxItem>
+<StackPanel Orientation="Horizontal">
+<TextBlock Text="" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Margin="0,0,10,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+<TextBlock Text="{loc:Text RecoveryHeading}" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+</StackPanel>
+</ListBoxItem>
+</ListBox>
+</DockPanel>
+</Border>
+   <Grid Grid.Column="1" Margin="26,20,22,0">
+<Grid.RowDefinitions>
+<RowDefinition Height="Auto"/>
+<RowDefinition Height="*"/>
+</Grid.RowDefinitions>
+    <StackPanel Margin="0,0,0,22">
+<TextBlock x:Name="SectionTitle" FontSize="28" FontWeight="SemiBold"/>
+<TextBlock x:Name="SectionDescription" Style="{StaticResource Hint}" Margin="0,8,0,0"/>
+</StackPanel>
+    <ScrollViewer x:Name="SettingsScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,10" PanningMode="VerticalOnly">
+<StackPanel>
+<StackPanel x:Name="GeneralPanel" Visibility="Collapsed">
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<TextBlock Text="{loc:Text StartupHeading}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+<CheckBox x:Name="StartupBox" Content="{loc:Text StartWithWindows}" AutomationProperties.Name="{loc:Text StartWithWindows}" />
+<CheckBox x:Name="TrayBox" Content="{loc:Text StartInTray}" AutomationProperties.Name="{loc:Text StartInTray}" />
+<TextBlock Text="{loc:Text StartupHint}" Style="{StaticResource Hint}" Margin="0,10,0,0"/>
+</StackPanel>
+</Border>
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<Label Content="{loc:Text Language}" Target="{Binding ElementName=LanguageBox}" Style="{StaticResource FieldLabel}"/>
+<ComboBox x:Name="LanguageBox" SelectedValuePath="Tag" AutomationProperties.Name="{loc:Text Language}" >
+<ComboBoxItem Tag="auto" Content="{loc:Text SystemLanguage}"/>
+<ComboBoxItem Tag="en" Content="English"/>
+<ComboBoxItem Tag="it" Content="Italiano"/>
+</ComboBox>
+<TextBlock Text="{loc:Text LanguageHint}" Style="{StaticResource Hint}" Margin="0,10,0,0"/>
+</StackPanel>
+</Border>
+</StackPanel>
+<StackPanel x:Name="AppearancePanel" Visibility="Collapsed">
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<Label Content="{loc:Text BackgroundMode}" Target="{Binding ElementName=BackgroundBox}" Style="{StaticResource FieldLabel}"/>
+<ComboBox x:Name="BackgroundBox" SelectedValuePath="Tag" AutomationProperties.Name="{loc:Text BackgroundMode}" SelectionChanged="AppearanceChanged">
 <ComboBoxItem Tag="artwork" Content="{loc:Text ArtworkBackground}"/>
 <ComboBoxItem Tag="fixed" Content="{loc:Text FixedBackground}"/>
 <ComboBoxItem Tag="custom" Content="{loc:Text CustomBackground}"/>
 </ComboBox>
-<Label Target="{Binding ElementName=ColorBox}" Content="{loc:Text BackgroundColor}" Foreground="#EAF6F3" Padding="0"/>
-<TextBox x:Name="ColorBox" AutomationProperties.Name="{loc:Text BackgroundColor}" Margin="0,6,0,12"/>
-<TextBlock Text="{loc:Text ColorHint}" TextWrapping="Wrap" Foreground="#B7CEC2" FontSize="11" Margin="0,0,0,12"/>
-<CheckBox x:Name="AnimationBox" Content="{loc:Text AnimateBackground}" AutomationProperties.Name="{loc:Text AnimateBackground}"/>
-<TextBlock Text="{loc:Text VisibilityHeading}" FontSize="16" FontWeight="SemiBold" Margin="0,16,0,12"/>
-<CheckBox x:Name="DisconnectedBox" Content="{loc:Text HideDisconnected}" AutomationProperties.Name="{loc:Text HideDisconnected}"/>
-<CheckBox x:Name="PausedBox" Content="{loc:Text HidePaused}" AutomationProperties.Name="{loc:Text HidePaused}"/>
-<Label Target="{Binding ElementName=DelayBox}" Content="{loc:Text PauseDelay}" Foreground="#EAF6F3" Padding="0"/>
-<TextBox x:Name="DelayBox" AutomationProperties.Name="{loc:Text PauseDelay}" Margin="0,6,0,12"/>
-<TextBlock Text="{loc:Text VisibilityHint}" TextWrapping="Wrap" Foreground="#B7CEC2" FontSize="11" Margin="0,0,0,12"/>
-<TextBlock Text="{loc:Text PlaybackShortcuts}" FontSize="16" FontWeight="SemiBold" Margin="0,16,0,12"/>
-<Label Target="{Binding ElementName=PlayBox}" Content="{loc:Text PlayShortcut}" Foreground="#EAF6F3" Padding="0"/>
-<TextBox x:Name="PlayBox" AutomationProperties.Name="{loc:Text PlayShortcut}" Margin="0,6,0,12"/>
-<Label Target="{Binding ElementName=PreviousBox}" Content="{loc:Text PreviousShortcut}" Foreground="#EAF6F3" Padding="0"/>
-<TextBox x:Name="PreviousBox" AutomationProperties.Name="{loc:Text PreviousShortcut}" Margin="0,6,0,12"/>
-<Label Target="{Binding ElementName=NextBox}" Content="{loc:Text NextShortcut}" Foreground="#EAF6F3" Padding="0"/>
-<TextBox x:Name="NextBox" AutomationProperties.Name="{loc:Text NextShortcut}" Margin="0,6,0,12"/>
-<Label Target="{Binding ElementName=BackwardBox}" Content="{loc:Text BackwardShortcut}" Foreground="#EAF6F3" Padding="0"/>
-<TextBox x:Name="BackwardBox" AutomationProperties.Name="{loc:Text BackwardShortcut}" Margin="0,6,0,12"/>
-<Label Target="{Binding ElementName=ForwardBox}" Content="{loc:Text ForwardShortcut}" Foreground="#EAF6F3" Padding="0"/>
-<TextBox x:Name="ForwardBox" AutomationProperties.Name="{loc:Text ForwardShortcut}" Margin="0,6,0,12"/>
-<TextBlock Text="{loc:Text OptionalShortcutHint}" TextWrapping="Wrap" Foreground="#B7CEC2" FontSize="11" Margin="0,0,0,12"/>
-<TextBlock Text="{loc:Text RecoveryHeading}" FontSize="16" FontWeight="SemiBold" Margin="0,16,0,12"/>
-<Button Content="{loc:Text ResetPlacement}" Click="ResetPlacementClick" HorizontalAlignment="Left" Margin="0,0,0,8"/>
-<TextBlock Text="{loc:Text ResetPlacementHint}" TextWrapping="Wrap" Foreground="#B7CEC2" FontSize="11" Margin="0,0,0,12"/>
-<Button Content="{loc:Text ResetAll}" Click="ResetAllClick" HorizontalAlignment="Left" Margin="0,0,0,12"/>
-    <TextBlock x:Name="ErrorText" Foreground="#FFE4B2" FontSize="12" TextWrapping="Wrap" Margin="0,12,0,0" AutomationProperties.LiveSetting="Assertive"/>
-   </StackPanel>
-  </ScrollViewer>
-  <Grid Grid.Row="2" Margin="0,18,0,0">
-   <Button x:Name="AboutButton" Content="{loc:Text About}" Style="{StaticResource AboutLink}" Click="AboutClick" HorizontalAlignment="Left" VerticalAlignment="Center"
-    Padding="2,6" Margin="0" Foreground="#C0D8CB" Background="Transparent" BorderThickness="0" Cursor="Hand" FontSize="12"
-    AutomationProperties.Name="{loc:Text AboutTitle}"/>
-  <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-   <Button Content="{loc:Text Cancel}" IsCancel="True" Click="CancelClick"/>
-   <Button Content="{loc:Text Save}" IsDefault="True" Click="SaveClick"/>
-  </StackPanel>
+<StackPanel x:Name="CustomColorPanel" Margin="0,16,0,0">
+<Label Content="{loc:Text BackgroundColor}" Target="{Binding ElementName=ColorBox}" Style="{StaticResource FieldLabel}"/>
+<Grid>
+<Grid.ColumnDefinitions>
+<ColumnDefinition Width="*"/>
+<ColumnDefinition Width="48"/>
+</Grid.ColumnDefinitions>
+<TextBox x:Name="ColorBox" TextChanged="ColorChanged" AutomationProperties.Name="{loc:Text BackgroundColor}" FontFamily="Consolas"/>
+<Border x:Name="ColorSwatch" Grid.Column="1" CornerRadius="10" Margin="10,0,0,0" Background="#24483C" BorderBrush="#647082" BorderThickness="1"/>
+</Grid>
+<TextBlock Text="{loc:Text ColorHint}" Style="{StaticResource Hint}" Margin="0,8,0,0"/>
+</StackPanel>
+<CheckBox x:Name="AnimationBox" Content="{loc:Text AnimateBackground}" AutomationProperties.Name="{loc:Text AnimateBackground}" Margin="0,8,0,0"/>
+</StackPanel>
+</Border>
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<TextBlock Text="{loc:Text PlayerHeading}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+<CheckBox x:Name="ShowAlbumBox" Content="{loc:Text ShowAlbum}" AutomationProperties.Name="{loc:Text ShowAlbum}" />
+<CheckBox x:Name="SnapBox" Content="{loc:Text SnapEdges}" AutomationProperties.Name="{loc:Text SnapEdges}" />
+<Border Height="1" Background="#343A42" Margin="0,10,0,16"/>
+<Grid>
+<Grid.ColumnDefinitions>
+<ColumnDefinition Width="*"/>
+<ColumnDefinition Width="48"/>
+</Grid.ColumnDefinitions>
+<Label Content="{loc:Text LockedOpacity}" Target="{Binding ElementName=OpacitySlider}" Style="{StaticResource FieldLabel}"/>
+<TextBlock x:Name="OpacityValue" Grid.Column="1" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Right" FontSize="13"/>
+</Grid>
+<Slider x:Name="OpacitySlider" Minimum="25" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OpacityChanged" AutomationProperties.Name="{loc:Text LockedOpacity}"/>
+<TextBlock Text="{loc:Text OpacityHint}" Style="{StaticResource Hint}" Margin="0,6,0,0"/>
+</StackPanel>
+</Border>
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<TextBlock Text="{loc:Text LayoutHeading}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+<TextBlock Text="{loc:Text LayoutHint}" Style="{StaticResource Hint}" />
+</StackPanel>
+</Border>
+</StackPanel>
+<StackPanel x:Name="VisibilityPanel" Visibility="Collapsed">
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<CheckBox x:Name="DisconnectedBox" Content="{loc:Text HideDisconnected}" AutomationProperties.Name="{loc:Text HideDisconnected}" />
+<CheckBox x:Name="PausedBox" Content="{loc:Text HidePaused}" AutomationProperties.Name="{loc:Text HidePaused}" Checked="PauseOptionChanged" Unchecked="PauseOptionChanged"/>
+<StackPanel Margin="0,16,0,16">
+<Label Content="{loc:Text PauseDelay}" Target="{Binding ElementName=DelayBox}" Style="{StaticResource FieldLabel}"/>
+<TextBox x:Name="DelayBox" Width="108" HorizontalAlignment="Left" AutomationProperties.Name="{loc:Text PauseDelay}"/>
+</StackPanel>
+<TextBlock Text="{loc:Text VisibilityHint}" Style="{StaticResource Hint}" />
+</StackPanel>
+</Border>
+</StackPanel>
+<StackPanel x:Name="ShortcutsPanel" Visibility="Collapsed">
+<TextBlock Text="{loc:Text ShortcutCaptureHint}" Style="{StaticResource Hint}" Margin="0,0,0,16"/>
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<StackPanel>
+<Label Content="{loc:Text ToggleShortcut}" Target="{Binding ElementName=ToggleBox}" Style="{StaticResource FieldLabel}"/>
+<TextBox x:Name="ToggleBox" AutomationProperties.Name="{loc:Text ToggleShortcut}" PreviewKeyDown="ShortcutCapture" FontFamily="Consolas" />
+</StackPanel>
+<Border Height="16"/>
+<StackPanel>
+<Label Content="{loc:Text UnlockShortcut}" Target="{Binding ElementName=UnlockBox}" Style="{StaticResource FieldLabel}"/>
+<TextBox x:Name="UnlockBox" AutomationProperties.Name="{loc:Text UnlockShortcut}" PreviewKeyDown="ShortcutCapture" FontFamily="Consolas" />
+</StackPanel>
+<TextBlock Text="{loc:Text ShortcutHint}" Style="{StaticResource Hint}" Margin="0,14,0,0"/>
+</StackPanel>
+</Border>
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<TextBlock Text="{loc:Text PlaybackShortcuts}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+<StackPanel Margin="0,0,0,14">
+<StackPanel>
+<Label Content="{loc:Text PlayShortcut}" Target="{Binding ElementName=PlayBox}" Style="{StaticResource FieldLabel}"/>
+<TextBox x:Name="PlayBox" AutomationProperties.Name="{loc:Text PlayShortcut}" PreviewKeyDown="ShortcutCapture" FontFamily="Consolas" />
+</StackPanel>
+</StackPanel>
+<StackPanel Margin="0,0,0,14">
+<StackPanel>
+<Label Content="{loc:Text PreviousShortcut}" Target="{Binding ElementName=PreviousBox}" Style="{StaticResource FieldLabel}"/>
+<TextBox x:Name="PreviousBox" AutomationProperties.Name="{loc:Text PreviousShortcut}" PreviewKeyDown="ShortcutCapture" FontFamily="Consolas" />
+</StackPanel>
+</StackPanel>
+<StackPanel Margin="0,0,0,14">
+<StackPanel>
+<Label Content="{loc:Text NextShortcut}" Target="{Binding ElementName=NextBox}" Style="{StaticResource FieldLabel}"/>
+<TextBox x:Name="NextBox" AutomationProperties.Name="{loc:Text NextShortcut}" PreviewKeyDown="ShortcutCapture" FontFamily="Consolas" />
+</StackPanel>
+</StackPanel>
+<StackPanel Margin="0,0,0,14">
+<StackPanel>
+<Label Content="{loc:Text BackwardShortcut}" Target="{Binding ElementName=BackwardBox}" Style="{StaticResource FieldLabel}"/>
+<TextBox x:Name="BackwardBox" AutomationProperties.Name="{loc:Text BackwardShortcut}" PreviewKeyDown="ShortcutCapture" FontFamily="Consolas" />
+</StackPanel>
+</StackPanel>
+<StackPanel Margin="0,0,0,14">
+<StackPanel>
+<Label Content="{loc:Text ForwardShortcut}" Target="{Binding ElementName=ForwardBox}" Style="{StaticResource FieldLabel}"/>
+<TextBox x:Name="ForwardBox" AutomationProperties.Name="{loc:Text ForwardShortcut}" PreviewKeyDown="ShortcutCapture" FontFamily="Consolas" />
+</StackPanel>
+</StackPanel>
+<TextBlock Text="{loc:Text OptionalShortcutHint}" Style="{StaticResource Hint}" />
+</StackPanel>
+</Border>
+</StackPanel>
+<StackPanel x:Name="RecoveryPanel" Visibility="Collapsed">
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<TextBlock Text="{loc:Text ResetPlacement}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+<TextBlock Text="{loc:Text ResetPlacementHint}" Style="{StaticResource Hint}" Margin="0,0,0,16"/>
+<Button Content="{loc:Text ResetPlacement}" Click="ResetPlacementClick" HorizontalAlignment="Left"/>
+</StackPanel>
+</Border>
+<Border Style="{StaticResource Card}">
+<StackPanel>
+<TextBlock Text="{loc:Text ResetAll}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+<TextBlock Text="{loc:Text ResetConfirm}" Style="{StaticResource Hint}" Margin="0,0,0,16"/>
+<Button x:Name="ResetAllButton" Content="{loc:Text ResetAll}" Click="ResetAllClick" HorizontalAlignment="Left" Foreground="#FFD0C8" Background="#432B2D" BorderBrush="#765054"/>
+<Border x:Name="ResetConfirmation" Visibility="Collapsed" Background="#35292B" CornerRadius="12" Padding="16" Margin="0,14,0,0">
+<StackPanel>
+<TextBlock Text="{loc:Text ResetConfirm}" Style="{StaticResource Hint}" />
+<WrapPanel Margin="0,14,0,0">
+<Button Content="{loc:Text Cancel}" Click="CancelResetClick" Margin="0,0,8,8"/>
+<Button x:Name="ConfirmResetButton" Content="{loc:Text ConfirmReset}" Click="ConfirmResetClick" Style="{StaticResource PrimaryButton}" Margin="0,0,0,8"/>
+</WrapPanel>
+</StackPanel>
+</Border>
+</StackPanel>
+</Border>
+</StackPanel>
+</StackPanel>
+</ScrollViewer>
+   </Grid>
   </Grid>
+  <Border Grid.Row="2" Background="#352C21" CornerRadius="10" Padding="14,10" Margin="202,8,30,0">
+<Border.Style>
+<Style TargetType="Border">
+<Style.Triggers>
+<DataTrigger Binding="{Binding Text, ElementName=ErrorText}" Value="">
+<Setter Property="Visibility" Value="Collapsed"/>
+</DataTrigger>
+</Style.Triggers>
+</Style>
+</Border.Style>
+<TextBlock x:Name="ErrorText" Foreground="#FFE0AC" TextWrapping="Wrap" FontSize="12" AutomationProperties.LiveSetting="Assertive"/>
+</Border>
+  <Border Grid.Row="3" BorderBrush="#2A3037" BorderThickness="0,1,0,0" Margin="0,10,0,0">
+<Grid Margin="24,12">
+<TextBlock Text="{loc:Text SettingsSaveHint}" Style="{StaticResource Hint}" VerticalAlignment="Center"/>
+   <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+<Button Content="{loc:Text Cancel}" IsCancel="True" Click="CancelClick" Margin="0,0,10,0"/>
+<Button x:Name="SaveButton" Content="{loc:Text Save}" Style="{StaticResource PrimaryButton}" IsDefault="True" Click="SaveClick" MinWidth="94"/>
+</StackPanel>
+  </Grid>
+</Border>
  </Grid>
+</Border>
 </Window>

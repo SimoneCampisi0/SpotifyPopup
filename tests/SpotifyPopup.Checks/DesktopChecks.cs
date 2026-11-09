@@ -32,7 +32,7 @@ internal static class DesktopChecks
         var settings = new AppSettings { EssentialMode = true, Language = "en", BackgroundMode = "fixed", AnimateBackground = false };
         var preferences = new SettingsStore(System.IO.Path.Combine(output, "essential.json")); preferences.Save(settings);
         var player = new Fake(); var essential = new MainWindow(player, preferences, false); essential.Show(); await Dispatcher.Yield();
-        Check(((Grid)essential.FindName("EssentialLayout")).IsVisible && essential.MinWidth == 260, "Essential layout restores with its own dimensions");
+        Check(((Grid)essential.FindName("EssentialLayout")).IsVisible && essential.MinWidth == 280, "Essential layout restores with its own dimensions");
         var changes = new List<string?>(); essential.Player.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
         var track = new MediaSnapshot { Connected = true, Title = "one", TrackKey = "one", Duration = 120, Position = 1 };
         player.Publish(track); changes.Clear(); player.Publish(track with { Position = 2 });

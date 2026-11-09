@@ -42,6 +42,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private string? startupWarning;
     public PlayerState Player { get; } = new();
     public event PropertyChangedEventHandler? PropertyChanged;
+    public bool IsNormalLayout => !settings.CompactMode && !settings.EssentialMode;
+    public bool IsCompactLayout => settings.CompactMode && !settings.EssentialMode;
+    public bool IsEssentialLayout => settings.EssentialMode;
     public double HeaderOpacity => !settings.EssentialMode || IsMouseOver || IsKeyboardFocusWithin ? 1 : 0;
     public Visibility AlbumVisibility => settings.ShowAlbum && !string.IsNullOrEmpty(Player.Album) ? Visibility.Visible : Visibility.Collapsed;
     public Visibility OpenSpotifyVisibility => Player.Connected ? Visibility.Collapsed : Visibility.Visible;
@@ -69,16 +72,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
     private void PlayerChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(PlayerState.Notice) or "") AdjustNoticeHeight();
+        if (e.PropertyName is nameof(PlayerState.Notice) or nameof(PlayerState.Connected) or "") AdjustNoticeHeight();
         if (e.PropertyName is nameof(PlayerState.Album) or nameof(PlayerState.Connected) or nameof(PlayerState.Notice) or "") Changed();
     }
-    private double BaseMinimumHeight => settings.EssentialMode ? 112 : settings.CompactMode ? 138 : 255;
+    private double BaseMinimumHeight => settings.EssentialMode ? 116 : settings.CompactMode ? 160 : 316;
     private void AdjustNoticeHeight()
     {
-        if (!string.IsNullOrEmpty(Player.Notice) && (settings.CompactMode || settings.EssentialMode))
+        var disconnectedCompact = settings.CompactMode && !settings.EssentialMode && !Player.Connected;
+        if (!string.IsNullOrEmpty(Player.Notice) || disconnectedCompact)
         {
             heightBeforeNotice ??= Height;
-            MinHeight = settings.EssentialMode ? 156 : 190;
+            MinHeight = BaseMinimumHeight + (disconnectedCompact ? 40 : 0) + (string.IsNullOrEmpty(Player.Notice) ? 0 : 70);
             Height = Math.Max(Height, MinHeight);
         }
         else
@@ -186,7 +190,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         void Animate(GradientStop stop, ArtworkColor color)
         {
             var from = stop.Color; // Includes the current animation value when a track interrupts it.
-            var target = Color.FromArgb(243, color.R, color.G, color.B);
+            var target = Color.FromArgb(250, color.R, color.G, color.B);
             stop.BeginAnimation(GradientStop.ColorProperty, null);
             // Keep the base value at the visible color until the replacement clock starts.
             stop.Color = from;
@@ -283,7 +287,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         NativeMethods.SetWindowLong(handle, NativeMethods.GwlExStyle, value ? style | mask : style & ~mask);
         if (value)
         {
-            var button = new Button { Content = "\uE785", ToolTip = Localizer.Get(TextKeys.UnlockPopup), Style = (Style)FindResource("GlassButton"), Width = 32, Height = 32, Background = new SolidColorBrush(Color.FromRgb(39, 57, 52)) };
+            var button = new Button { Content = "\uE785", ToolTip = Localizer.Get(TextKeys.UnlockPopup), Style = (Style)FindResource("GlassButton"), Width = 32, Height = 32, Background = new SolidColorBrush(Color.FromRgb(35, 43, 48)) };
             System.Windows.Automation.AutomationProperties.SetName(button, Localizer.Get(TextKeys.UnlockPopup));
             unlock = new Window { Width = 32, Height = 32, WindowStyle = WindowStyle.None, AllowsTransparency = true, Background = Brushes.Transparent,
                 ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false, ShowActivated = false, Topmost = true, Content = button, Owner = this };
@@ -318,7 +322,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void ApplyLayout()
     {
         var compact = settings.CompactMode; var essential = settings.EssentialMode;
-        MinWidth = essential ? 260 : compact ? 360 : 330; MinHeight = essential ? 112 : compact ? 138 : 255;
+        MinWidth = essential ? 280 : 360; MinHeight = BaseMinimumHeight;
         NormalLayout.Visibility = !compact && !essential ? Visibility.Visible : Visibility.Collapsed;
         CompactLayout.Visibility = compact && !essential ? Visibility.Visible : Visibility.Collapsed;
         EssentialLayout.Visibility = essential ? Visibility.Visible : Visibility.Collapsed;
@@ -338,6 +342,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         settings.EssentialMode = false; settings.CompactMode = !settings.CompactMode; ApplyLayout(); UpdateLayout(); RestorePosition();
         restoring = false; QueueSave();
     }
+    private void NormalLayoutClick(object sender, RoutedEventArgs e) => SelectLayout(false, false);
+    private void CompactLayoutClick(object sender, RoutedEventArgs e) => SelectLayout(true, false);
+    private void EssentialLayoutClick(object sender, RoutedEventArgs e) => SelectLayout(false, true);
+    private void SelectLayout(bool compact, bool essential)
+    {
+        if (settings.CompactMode == compact && settings.EssentialMode == essential) return;
+        CapturePlacement(); restoring = true; settings.CompactMode = compact; settings.EssentialMode = essential;
+        ApplyLayout(); UpdateLayout(); RestorePosition(); restoring = false; QueueSave();
+    }
     private void EssentialClick(object sender, RoutedEventArgs e)
     {
         CapturePlacement(); restoring = true;
@@ -346,8 +359,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
     private void ResetPlacement()
     {
-        settings.Normal = new(); settings.Compact = new() { Width = 460, Height = 142 };
-        settings.Essential = new() { Width = 330, Height = 112 };
+        settings.Normal = new(); settings.Compact = new() { Width = 460, Height = 166 };
+        settings.Essential = new() { Width = 330, Height = 116 };
         restoring = true; ApplyLayout(); WindowStartupLocation = WindowStartupLocation.Manual;
         var area = Forms.Screen.PrimaryScreen!.WorkingArea;
         NativeMethods.Move(this, area.Left + 30, area.Top + 30); NativeMethods.EnsureVisible(this);
@@ -413,6 +426,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         UpdateTray();
     }
     private void HideClick(object sender, RoutedEventArgs e) => ToggleVisibility();
+    private void OpenMenuClick(object sender, RoutedEventArgs e)
+    {
+        var menu = RootSurface.ContextMenu;
+        menu.PlacementTarget = (Button)sender; menu.Placement = PlacementMode.Bottom; menu.IsOpen = true;
+    }
     private void SettingsClick(object sender, RoutedEventArgs e) => OpenSettings();
     private void OpenSettings()
     {

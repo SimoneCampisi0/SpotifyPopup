@@ -6,15 +6,15 @@ public sealed class WindowPlacement
 {
     public int? X { get; set; }
     public int? Y { get; set; }
-    public double Width { get; set; } = 390;
-    public double Height { get; set; } = 270;
+    public double Width { get; set; } = 420;
+    public double Height { get; set; } = 320;
 }
 
 public sealed class AppSettings
 {
     public WindowPlacement Normal { get; set; } = new();
-    public WindowPlacement Compact { get; set; } = new() { Width = 460, Height = 142 };
-    public WindowPlacement Essential { get; set; } = new() { Width = 330, Height = 112 };
+    public WindowPlacement Compact { get; set; } = new() { Width = 460, Height = 166 };
+    public WindowPlacement Essential { get; set; } = new() { Width = 330, Height = 116 };
     public bool CompactMode { get; set; }
     public bool EssentialMode { get; set; }
     public bool ShowAlbum { get; set; } = true;
@@ -42,10 +42,10 @@ public sealed class AppSettings
     public void Normalize()
     {
         Language = Localizer.Normalize(Language);
-        Normal ??= new(); Compact ??= new() { Width = 460, Height = 142 }; Essential ??= new() { Width = 330, Height = 112 };
-        NormalizePlacement(Normal, 330, 255, 390, 270);
-        NormalizePlacement(Compact, 360, 138, 460, 142);
-        NormalizePlacement(Essential, 260, 112, 330, 112);
+        Normal ??= new(); Compact ??= new() { Width = 460, Height = 166 }; Essential ??= new() { Width = 330, Height = 116 };
+        NormalizePlacement(Normal, 360, 316, 420, 320);
+        NormalizePlacement(Compact, 360, 160, 460, 166);
+        NormalizePlacement(Essential, 280, 116, 330, 116);
         LockedOpacity = double.IsFinite(LockedOpacity) ? Math.Clamp(LockedOpacity, .25, 1) : .58;
         ToggleShortcut ??= "Ctrl+Alt+P"; UnlockShortcut ??= "Ctrl+Alt+U";
         PlayShortcut ??= ""; PreviousShortcut ??= ""; NextShortcut ??= ""; BackwardShortcut ??= ""; ForwardShortcut ??= "";
