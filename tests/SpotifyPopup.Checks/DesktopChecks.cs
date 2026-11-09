@@ -51,6 +51,10 @@ internal static class DesktopChecks
         using var hotkeys = new HotkeyManager(source!, () => { }, () => { });
         var shortcuts = new AppSettings { ToggleShortcut = "Ctrl+Alt+F10", UnlockShortcut = "Ctrl+Alt+F11", PlayShortcut = "Ctrl+Alt+F10" };
         Check(!hotkeys.TryApply(shortcuts, out var duplicate) && duplicate == TextKeys.ShortcutDuplicate, "Playback shortcuts cannot duplicate show/hide shortcut");
+        shortcuts.PlayShortcut = "";
+        Check(hotkeys.TryApply(shortcuts, out _), "Global shortcuts can be registered before opening Settings");
+        hotkeys.Suspend();
+        Check(hotkeys.TryApply(shortcuts, out _), "Unchanged shortcuts are restored after shortcut capture ends");
         return count;
     }
     private sealed class SourceWindow : IDisposable

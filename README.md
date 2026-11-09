@@ -6,6 +6,21 @@ A small, always-on-top Spotify player for Windows. Keep your music controls with
 
 [![Windows checks and release](https://github.com/SimoneCampisi0/SpotifyPopup/actions/workflows/windows-release.yml/badge.svg)](https://github.com/SimoneCampisi0/SpotifyPopup/actions/workflows/windows-release.yml)
 
+## Design in v1.5.0
+
+The player uses a shared charcoal-and-mint design across the overlay, Settings, About and notification-area menu. Cover artwork, title and playback are the visual priorities. Controls keep their sizes when resizing the player; only artwork is scaled in smaller layouts.
+
+- Open the **Spotify Popup menu** in the upper-left corner (or right-click the background) to choose Comfortable, Compact or Essential. A checkmark identifies the active layout.
+- Use the top-right buttons for Settings, Lock and Exit. The separate unlock control remains available in locked mode.
+- Settings has five sections: General, Appearance, Visibility, Shortcuts and Recovery. The footer keeps Save and Cancel available while a section scrolls.
+- Switches, inputs, dropdowns, sliders, menus and keyboard focus indicators share the same theme. Dropdowns support keyboard selection; sliders retain mouse and keyboard seeking.
+- To edit a shortcut, select its field and press a combination. Backspace clears it; Tab moves on and Escape cancels the dialog. The app suspends its own global shortcuts while Settings is open and restores them on closing.
+- Custom-color controls appear only for a custom background; the swatch previews valid input without applying it. Pause-delay input is enabled only when the relevant automatic visibility option is on.
+- Resetting all preferences uses an inline confirmation, then requires Save. Cancel continues to preserve existing preferences.
+- About keeps the full offline license behind **Read the license**, with update and diagnostic actions together below it.
+
+The executable declares Per-Monitor V2 DPI awareness. The Windows packaging check verifies the published window's DPI-awareness context; real monitor-to-monitor transitions still require hands-on verification. Existing preferences and positions are preserved, with dimensions clamped where needed to fit the redesigned layouts.
+
 ## Features
 
 - **Windows startup:** optionally start at sign-in for your Windows account, with an independent tray-only startup option. Both are off by default.
@@ -65,7 +80,7 @@ Although the app is distributed as one executable, .NET extracts bundled native 
 | --- | --- |
 | Move the popup | Drag an empty area of the window. |
 | Resize | Drag a window edge or the resize grip. |
-| Switch layouts | The layout button switches normal/compact. Choose Essential layout from the background context menu to toggle the essential bar. |
+| Switch layouts | Open the Spotify Popup menu or right-click the background, then choose Comfortable, Compact or Essential. |
 | Read long metadata | Hover over the text while the popup is unlocked. |
 | Seek | Click or drag the progress slider, or focus it and use the keyboard. |
 | Lock | Select the lock button. The popup becomes semitransparent and passes clicks through. |
@@ -83,11 +98,11 @@ The default global shortcuts are:
 
 Both shortcuts are configurable in Settings. If a shortcut is already registered by another application, Spotify Popup reports the conflict.
 
-Settings also lets you adjust locked opacity, toggle album metadata, enable edge snapping and choose the interface language. The essential bar retains cover artwork, title and play/pause; previous/next and window controls become visible on hover or keyboard focus. Each layout remembers its own dimensions.
+Settings also lets you adjust locked opacity, toggle album metadata, enable edge snapping and choose the interface language. The essential bar retains cover artwork, title, artist and play/pause; window controls become visible on hover or keyboard focus. Other playback commands remain available through configured shortcuts. Each layout remembers its own dimensions.
 
 ### Start with Windows and start in the notification area
 
-Open **Settings → Startup**. The two options are independent and disabled by default:
+Open **Settings → General → Startup**. The two options are independent and disabled by default:
 
 | Start with Windows | Start in the notification area | Result |
 | --- | --- | --- |
@@ -114,7 +129,7 @@ Open **Settings → About** to check for updates or copy diagnostics. Update che
 
 Local diagnostic logs are stored under `%LocalAppData%\SpotifyPopup\Logs`; they rotate at approximately 256 KiB with one previous file. They record operation names, exception types, error codes and method names, excluding exception messages, paths, account identifiers and music metadata. Diagnostic failures do not stop the app.
 
-**Reset window position and sizes** applies immediately to all three layouts. **Reset all preferences** asks for confirmation, fills the dialog with defaults and requires Save; Cancel discards that reset. Saving defaults also disables Windows startup and optional shortcuts.
+**Reset window position and sizes** applies immediately to all three layouts. **Reset all preferences** asks for an inline confirmation, fills the dialog with defaults and requires Save; Cancel discards that reset. Saving defaults also disables Windows startup and optional shortcuts.
 
 Media operations have an eight-second deadline. A timed-out operation releases the controller, reports recovery and cannot apply stale results later. Reconnection attempts continue automatically.
 
@@ -183,7 +198,7 @@ Generated UI verification images are available as workflow artifacts. Real Spoti
 
 | Path | Purpose |
 | --- | --- |
-| `core/` | WPF application, media integration, settings, localization, artwork backgrounds, and About dialog. |
+| `core/` | Shared theme, WPF application, media integration, settings, localization, artwork backgrounds, and About dialog. |
 | `assets/logo.ico` | Original application icon. |
 | `tests/SpotifyPopup.LogicChecks/` | Logic regression checks. |
 | `tests/SpotifyPopup.Checks/` | Isolated Windows UI checks. |

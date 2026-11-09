@@ -1,4 +1,12 @@
 $ErrorActionPreference = 'Stop'
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class DpiCheck {
+ [DllImport("user32.dll")] public static extern IntPtr GetWindowDpiAwarenessContext(IntPtr window);
+ [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool AreDpiAwarenessContextsEqual(IntPtr first, IntPtr second);
+}
+'@
 $exe = Join-Path $PWD 'core/bin/publish/win-x64/SpotifyPopup.exe'
 if (!(Test-Path $exe) -or (Get-Item $exe).Length -lt 10MB) { throw 'Standalone executable missing or incomplete.' }
 $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
@@ -29,6 +37,9 @@ foreach ($tray in @($false, $true)) {
     } else {
       Wait-Condition { $process.Refresh(); $process.MainWindowHandle -ne 0 } 'The popup did not become visible.'
     }
+    if (!$tray -and ![DpiCheck]::AreDpiAwarenessContextsEqual([DpiCheck]::GetWindowDpiAwarenessContext($process.MainWindowHandle), [IntPtr]::new(-4))) {
+      throw 'Published window is not Per-Monitor V2 DPI-aware.'
+    }
     $second = Start-Process $copy -PassThru
     try {
       if (!$second.WaitForExit(10000) -or $second.ExitCode -ne 0) { throw 'Second instance did not signal and exit normally.' }
@@ -44,4 +55,4 @@ foreach ($tray in @($false, $true)) {
 }
 $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
 "$hash  SpotifyPopup.exe" | Set-Content 'core/bin/publish/win-x64/SpotifyPopup.exe.sha256' -Encoding ascii
-Write-Host 'Published executable: icon, normal/tray startup, paths with spaces, second-instance activation and clean shutdown passed.'
+Write-Host 'Published executable: icon, Per-Monitor V2 DPI awareness, normal/tray startup, paths with spaces, second-instance activation and clean shutdown passed.'

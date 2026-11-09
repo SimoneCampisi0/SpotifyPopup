@@ -347,7 +347,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void EssentialLayoutClick(object sender, RoutedEventArgs e) => SelectLayout(false, true);
     private void SelectLayout(bool compact, bool essential)
     {
-        if (settings.CompactMode == compact && settings.EssentialMode == essential) return;
+        if (settings.CompactMode == compact && settings.EssentialMode == essential) { Changed(); return; }
         CapturePlacement(); restoring = true; settings.CompactMode = compact; settings.EssentialMode = essential;
         ApplyLayout(); UpdateLayout(); RestorePosition(); restoring = false; QueueSave();
     }
@@ -389,6 +389,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             using var embeddedIcon = new System.Drawing.Icon(stream);
             trayIcon = (System.Drawing.Icon)embeddedIcon.Clone();
             var menu = new Forms.ContextMenuStrip();
+            if (!Forms.SystemInformation.HighContrast)
+            {
+                menu.Renderer = new Forms.ToolStripProfessionalRenderer(new TrayColors()) { RoundedEdges = true };
+                menu.ForeColor = System.Drawing.Color.FromArgb(243, 245, 247);
+                menu.ShowImageMargin = false; menu.Padding = new Forms.Padding(6);
+            }
             trayVisibility = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Hide), null, (_, _) => Dispatch(ToggleVisibility));
             trayLock = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Lock), null, (_, _) => Dispatch(() => { visibility.Manual(true); SetLocked(!locked); ShowPopup(false); }));
             menu.Items.Add(trayVisibility); menu.Items.Add(trayLock);
@@ -396,6 +402,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             trayExit = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Exit), null, (_, _) => Dispatch(Close));
             menu.Items.Add(traySettings);
             menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add(trayExit);
+            foreach (Forms.ToolStripItem item in menu.Items) item.Padding = new Forms.Padding(10, 6, 10, 6);
             tray = new Forms.NotifyIcon { Text = "Spotify Popup", Icon = trayIcon, ContextMenuStrip = menu, Visible = true };
             tray.DoubleClick += (_, _) => Dispatch(RevealExisting);
             UpdateTray();
@@ -442,6 +449,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             (_, _) => ValidateSettings(settingsWindow!.Draft), ResetPlacement);
         settingsWindow.Owner = this;
         var dialog = settingsWindow;
+        hotkeys?.Suspend();
         try
         {
             if (dialog.ShowDialog() == true)
@@ -452,14 +460,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
             else settings.LockedOpacity = originalOpacity;
         }
-        finally { settingsWindow = null; Opacity = 1; }
+        finally
+        {
+            settingsWindow = null; Opacity = 1;
+            if (!closed && hotkeys != null && !hotkeys.TryApply(settings, out var restoreError)) ShowNotice(restoreError);
+        }
     }
     private string? ValidateSettings(AppSettings candidate)
     {
         if (hotkeys != null && !hotkeys.TryApply(candidate, out var error)) return error;
         if (enableShell && !startup.TryApply(candidate.StartWithWindows))
         {
-            hotkeys?.TryApply(settings, out _); return TextKeys.StartupFailed;
+            hotkeys?.Suspend(); return TextKeys.StartupFailed;
         }
         return null;
     }

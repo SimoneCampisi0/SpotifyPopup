@@ -10,6 +10,7 @@
 </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>
 </Window.Resources>
+ <Window.Template><ControlTemplate TargetType="{x:Type Window}"><AdornerDecorator><ContentPresenter/></AdornerDecorator></ControlTemplate></Window.Template>
  <Border CornerRadius="20" Background="{StaticResource CanvasBrush}" BorderBrush="#454C55" BorderThickness="1" Margin="1">
  <Grid>
 <Grid.RowDefinitions>

@@ -9,6 +9,8 @@ internal sealed class HotkeyManager : IDisposable
     private readonly HwndSource source;
     private string[] current = Array.Empty<string>();
     private readonly Action[] actions;
+    private bool suspended;
+    internal void Suspend() { Unregister(); suspended = true; }
     internal HotkeyManager(HwndSource source, Action toggle, Action unlock, Action? play = null,
         Action? previous = null, Action? next = null, Action? backward = null, Action? forward = null)
     {
@@ -27,8 +29,8 @@ internal sealed class HotkeyManager : IDisposable
             if (parsed.Contains((modifiers, key))) { error = TextKeys.ShortcutDuplicate; return false; }
             parsed.Add((modifiers, key));
         }
-        if (values.SequenceEqual(current)) { error = ""; return true; }
-        var old = current;
+        if (!suspended && values.SequenceEqual(current)) { error = ""; return true; }
+        var old = current; var wasSuspended = suspended;
         Unregister();
         for (var i = 0; i < parsed.Count; i++)
         {
@@ -36,12 +38,12 @@ internal sealed class HotkeyManager : IDisposable
             if (key == 0 || NativeMethods.RegisterHotKey(source.Handle, FirstId + i, modifiers | 0x4000, key)) continue;
             Unregister();
             var restored = true;
-            for (var j = 0; j < old.Length; j++)
+            for (var j = 0; !wasSuspended && j < old.Length; j++)
                 if (Parse(old[j], out var om, out var ok)) restored &= NativeMethods.RegisterHotKey(source.Handle, FirstId + j, om | 0x4000, ok);
-            current = restored ? old : Array.Empty<string>();
+            current = restored ? old : Array.Empty<string>(); suspended = wasSuspended;
             error = TextKeys.ShortcutBusy; return false;
         }
-        current = values; error = ""; return true;
+        current = values; suspended = false; error = ""; return true;
     }
     internal static bool Parse(string text, out uint modifiers, out uint key)
     {

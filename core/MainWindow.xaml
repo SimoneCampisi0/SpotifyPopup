@@ -3,7 +3,7 @@
  xmlns:loc="clr-namespace:SpotifyPopup" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
  Title="Spotify Popup" Icon="/SpotifyPopup;component/Assets/logo.ico" Width="420" Height="320" MinWidth="360" MinHeight="316"
  FontFamily="Segoe UI Variable Text, Segoe UI" Foreground="#F3F5F7" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Topmost="True"
- ResizeMode="CanResizeWithGrip" Loaded="OnLoaded" Closed="OnClosed" SourceInitialized="OnSourceInitialized"
+ ResizeMode="CanResize" Loaded="OnLoaded" Closed="OnClosed" SourceInitialized="OnSourceInitialized"
  MouseEnter="HoverChanged" MouseLeave="HoverChanged" IsKeyboardFocusWithinChanged="FocusWithinChanged"
  LocationChanged="OnLocationChanged" SizeChanged="OnSizeChanged" UseLayoutRounding="True" SnapsToDevicePixels="True">
  <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" GlassFrameThickness="0"/></shell:WindowChrome.WindowChrome>
@@ -19,17 +19,18 @@
    <Image Source="{Binding Artwork}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"><Image.Clip><RectangleGeometry Rect="0,0,96,96" RadiusX="16" RadiusY="16"/></Image.Clip></Image>
   </Grid></DataTemplate>
  </ResourceDictionary></Window.Resources>
+ <Window.Template><ControlTemplate TargetType="{x:Type Window}"><AdornerDecorator><ContentPresenter/></AdornerDecorator></ControlTemplate></Window.Template>
  <Border x:Name="RootSurface" Margin="1" CornerRadius="24" BorderThickness="1" MouseLeftButtonDown="OnDrag">
   <Border.BorderBrush><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#48FFFFFF"/><GradientStop Color="#16FFFFFF" Offset="1"/></LinearGradientBrush></Border.BorderBrush>
   <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop x:Name="BackgroundStart" Color="#FA1D1F23" Offset="0"/><GradientStop x:Name="BackgroundEnd" Color="#FA111317" Offset="1"/></LinearGradientBrush></Border.Background>
-  <Border.ContextMenu><ContextMenu Style="{StaticResource DarkContextMenu}" ItemContainerStyle="{StaticResource {x:Type MenuItem}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-   <MenuItem Header="{loc:Text Hide}" Click="HideClick"/>
-   <Separator/>
-   <MenuItem Header="{loc:Text LayoutNormal}" IsCheckable="True" IsChecked="{Binding IsNormalLayout, Mode=OneWay}" Click="NormalLayoutClick"/>
-   <MenuItem Header="{loc:Text LayoutCompact}" IsCheckable="True" IsChecked="{Binding IsCompactLayout, Mode=OneWay}" Click="CompactLayoutClick"/>
-   <MenuItem Header="{loc:Text LayoutEssential}" IsCheckable="True" IsChecked="{Binding IsEssentialLayout, Mode=OneWay}" Click="EssentialLayoutClick"/>
-   <Separator/><MenuItem Header="{loc:Text Settings}" Click="SettingsClick"/><MenuItem Header="{loc:Text OpenSpotify}" Click="OpenSpotifyClick"/><MenuItem Header="{loc:Text LockPopup}" Click="LockClick"/>
-   <Separator/><MenuItem Header="{loc:Text Exit}" Click="ExitClick"/>
+  <Border.ContextMenu><ContextMenu Style="{StaticResource DarkContextMenu}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+   <MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text Hide}" Click="HideClick"/>
+   <Separator Style="{StaticResource {x:Type Separator}}"/>
+   <MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text LayoutNormal}" IsCheckable="True" IsChecked="{Binding IsNormalLayout, Mode=OneWay}" Click="NormalLayoutClick"/>
+   <MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text LayoutCompact}" IsCheckable="True" IsChecked="{Binding IsCompactLayout, Mode=OneWay}" Click="CompactLayoutClick"/>
+   <MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text LayoutEssential}" IsCheckable="True" IsChecked="{Binding IsEssentialLayout, Mode=OneWay}" Click="EssentialLayoutClick"/>
+   <Separator Style="{StaticResource {x:Type Separator}}"/><MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text Settings}" Click="SettingsClick"/><MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text OpenSpotify}" Click="OpenSpotifyClick"/><MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text LockPopup}" Click="LockClick"/>
+   <Separator Style="{StaticResource {x:Type Separator}}"/><MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text Exit}" Click="ExitClick"/>
   </ContextMenu></Border.ContextMenu>
   <Grid Margin="18,12,18,14">
    <Grid.RowDefinitions><RowDefinition Height="32"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
