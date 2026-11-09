@@ -5,7 +5,7 @@
  Title="Spotify Popup" Icon="/SpotifyPopup;component/Assets/logo.ico" Width="390" Height="270" MinWidth="330" MinHeight="255"
  WindowStyle="None" AllowsTransparency="True" Background="Transparent" Topmost="True"
  ResizeMode="CanResizeWithGrip" Loaded="OnLoaded" Closed="OnClosed" SourceInitialized="OnSourceInitialized"
- MouseEnter="HoverChanged" MouseLeave="HoverChanged" IsKeyboardFocusWithinChanged="HoverChanged" LocationChanged="OnLocationChanged" SizeChanged="OnSizeChanged" UseLayoutRounding="True" SnapsToDevicePixels="True">
+ MouseEnter="HoverChanged" MouseLeave="HoverChanged" IsKeyboardFocusWithinChanged="FocusWithinChanged" LocationChanged="OnLocationChanged" SizeChanged="OnSizeChanged" UseLayoutRounding="True" SnapsToDevicePixels="True">
  <shell:WindowChrome.WindowChrome>
   <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="18" GlassFrameThickness="0"/>
  </shell:WindowChrome.WindowChrome>

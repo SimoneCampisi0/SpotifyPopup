@@ -137,6 +137,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         else if (desired == true && automaticallyHidden) { automaticallyHidden = false; ShowPopup(false); }
     }
     private void HoverChanged(object sender, RoutedEventArgs e) => Changed();
+    private void FocusWithinChanged(object sender, DependencyPropertyChangedEventArgs e) => Changed();
     private void OnMediaUpdated(object? sender, MediaSnapshot snapshot)
     {
         if (closed) return;
