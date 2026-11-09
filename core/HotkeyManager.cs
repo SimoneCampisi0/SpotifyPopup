@@ -63,7 +63,7 @@ internal sealed class HotkeyManager : IDisposable
     private IntPtr Hook(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         var index = (int)wParam - FirstId;
-        if (message == 0x0312 && index >= 0 && index < actions.Length) { actions[index](); handled = true; }
+        if (!suspended && message == 0x0312 && index >= 0 && index < actions.Length) { actions[index](); handled = true; }
         return IntPtr.Zero;
     }
     private void Unregister() { for (var i = 0; i < actions.Length; i++) NativeMethods.UnregisterHotKey(source.Handle, FirstId + i); }

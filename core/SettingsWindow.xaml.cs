@@ -85,16 +85,25 @@ public partial class SettingsWindow : Window
     }
     private void ResetAllClick(object sender, RoutedEventArgs e)
     {
+        SaveButton.IsDefault = false; ConfirmResetButton.IsDefault = true;
         ResetConfirmation.Visibility = Visibility.Visible; ConfirmResetButton.Focus(); ResetConfirmation.BringIntoView();
     }
-    private void CancelResetClick(object sender, RoutedEventArgs e) { ResetConfirmation.Visibility = Visibility.Collapsed; ResetAllButton.Focus(); }
+    private void CancelResetClick(object sender, RoutedEventArgs e)
+    {
+        ResetConfirmation.Visibility = Visibility.Collapsed; ConfirmResetButton.IsDefault = false; SaveButton.IsDefault = true; ResetAllButton.Focus();
+    }
+    private void DialogKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && ResetConfirmation.Visibility == Visibility.Visible)
+        { e.Handled = true; CancelResetClick(sender, e); }
+    }
     private void ConfirmResetClick(object sender, RoutedEventArgs e)
     {
-        ResetConfirmation.Visibility = Visibility.Collapsed;
+        ResetConfirmation.Visibility = Visibility.Collapsed; ConfirmResetButton.IsDefault = false; SaveButton.IsDefault = true;
         ResetRequested = true; var defaults = new AppSettings(); Fill(defaults);
         original.Normal = defaults.Normal; original.Compact = defaults.Compact; original.Essential = defaults.Essential;
         original.CompactMode = false; original.EssentialMode = false;
-        preview(defaults.LockedOpacity); SetError(TextKeys.DefaultsReady);
+        preview(defaults.LockedOpacity); SetError(TextKeys.DefaultsReady); SaveButton.Focus();
     }
     internal void SelectSection(int index)
     {
@@ -105,6 +114,7 @@ public partial class SettingsWindow : Window
     {
         var panels = new[] { GeneralPanel, AppearancePanel, VisibilityPanel, ShortcutsPanel, RecoveryPanel };
         var index = Math.Clamp(Navigation.SelectedIndex, 0, 4);
+        if (index != 4) { ResetConfirmation.Visibility = Visibility.Collapsed; ConfirmResetButton.IsDefault = false; SaveButton.IsDefault = true; }
         for (var i = 0; i < panels.Length; i++) panels[i].Visibility = i == index ? Visibility.Visible : Visibility.Collapsed;
         var titles = new[] { TextKeys.GeneralSection, TextKeys.Appearance, TextKeys.VisibilityHeading, TextKeys.ShortcutsSection, TextKeys.RecoveryHeading };
         var descriptions = new[] { TextKeys.GeneralDescription, TextKeys.AppearanceDescription, TextKeys.VisibilityDescription, TextKeys.ShortcutsDescription, TextKeys.RecoveryDescription };

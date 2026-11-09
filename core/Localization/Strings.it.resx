@@ -61,7 +61,7 @@
     <value>Salva</value>
   </data>
   <data name="Language" xml:space="preserve">
-    <value>Lingua / Language</value>
+    <value>Lingua</value>
   </data>
   <data name="LanguageHint" xml:space="preserve">
     <value>Scegli una lingua o segui quella di Windows.</value>
@@ -334,22 +334,22 @@
     <value>Generali</value>
   </data>
   <data name="GeneralDescription" xml:space="preserve">
-    <value>Pronto quando vuoi. Integra il player nella tua giornata.</value>
+    <value>Avvio dell’app e lingua dell’interfaccia.</value>
   </data>
   <data name="AppearanceDescription" xml:space="preserve">
-    <value>Uno spazio essenziale, con il tuo stile.</value>
+    <value>Colori, layout e dettagli del player.</value>
   </data>
   <data name="VisibilityDescription" xml:space="preserve">
-    <value>La tua musica in vista, quando vuoi tu.</value>
+    <value>Scegli quando mostrare il player o nasconderlo.</value>
   </data>
   <data name="ShortcutsSection" xml:space="preserve">
     <value>Scorciatoie</value>
   </data>
   <data name="ShortcutsDescription" xml:space="preserve">
-    <value>I tuoi comandi, a una combinazione di tasti.</value>
+    <value>Controlla riproduzione e player dalla tastiera.</value>
   </data>
   <data name="RecoveryDescription" xml:space="preserve">
-    <value>Un nuovo inizio, senza reinstallare.</value>
+    <value>Ripristina la finestra o torna alle impostazioni iniziali.</value>
   </data>
   <data name="PlayerHeading" xml:space="preserve">
     <value>Player</value>

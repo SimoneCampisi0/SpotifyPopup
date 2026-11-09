@@ -61,7 +61,7 @@
     <value>Save</value>
   </data>
   <data name="Language" xml:space="preserve">
-    <value>Language / Lingua</value>
+    <value>Language</value>
   </data>
   <data name="LanguageHint" xml:space="preserve">
     <value>Choose a language, or follow Windows.</value>
@@ -334,22 +334,22 @@
     <value>General</value>
   </data>
   <data name="GeneralDescription" xml:space="preserve">
-    <value>Ready when you are. Make the player part of your day.</value>
+    <value>Startup behavior and interface language.</value>
   </data>
   <data name="AppearanceDescription" xml:space="preserve">
-    <value>A quieter canvas. A little more you.</value>
+    <value>Colors, layout and player details.</value>
   </data>
   <data name="VisibilityDescription" xml:space="preserve">
-    <value>Keep your music in sight, on your terms.</value>
+    <value>Choose when the player appears or stays out of the way.</value>
   </data>
   <data name="ShortcutsSection" xml:space="preserve">
     <value>Shortcuts</value>
   </data>
   <data name="ShortcutsDescription" xml:space="preserve">
-    <value>Your controls, one key combination away.</value>
+    <value>Control playback and the player from your keyboard.</value>
   </data>
   <data name="RecoveryDescription" xml:space="preserve">
-    <value>A fresh start, without reinstalling.</value>
+    <value>Restore window placement or start with default settings.</value>
   </data>
   <data name="PlayerHeading" xml:space="preserve">
     <value>Player</value>

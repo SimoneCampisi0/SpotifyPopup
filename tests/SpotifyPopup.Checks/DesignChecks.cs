@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using SpotifyPopup;
@@ -71,6 +72,10 @@ internal static class DesignChecks
             Check(((TextBox)settings.FindName("DelayBox")).IsEnabled, "Pause hiding enables its delay field");
             settings.SelectSection(4); ((Button)settings.FindName("ResetAllButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Pump();
             Check(((Border)settings.FindName("ResetConfirmation")).IsVisible && !settings.ResetRequested, "Reset asks for an inline confirmation before changing any preferences");
+            Check(((Button)settings.FindName("ConfirmResetButton")).IsDefault && !((Button)settings.FindName("SaveButton")).IsDefault, "Enter targets confirmation rather than silently saving the dialog");
+            settings.RaiseEvent(new KeyEventArgs(InputManager.Current.PrimaryKeyboardDevice, PresentationSource.FromVisual(settings), Environment.TickCount, Key.Escape) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+            Check(!((Border)settings.FindName("ResetConfirmation")).IsVisible && settings.IsVisible, "Escape dismisses reset confirmation while keeping Settings open");
+            ((Button)settings.FindName("ResetAllButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Pump();
             Save(settings, System.IO.Path.Combine(output, $"design-reset-confirm-{language}.png"));
             ((Button)settings.FindName("ConfirmResetButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Check(settings.ResetRequested && !settings.Draft.StartWithWindows, "Confirmed reset fills defaults and still requires Save");
