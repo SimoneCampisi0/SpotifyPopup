@@ -48,28 +48,7 @@ jobs:
         run: ./publish.ps1
       - name: Verify standalone startup and executable icon
         shell: pwsh
-        run: |
-          $exe = Join-Path $PWD 'core/bin/publish/win-x64/SpotifyPopup.exe'
-          if (!(Test-Path $exe) -or (Get-Item $exe).Length -lt 10MB) { throw 'Standalone executable missing or incomplete.' }
-          $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
-          if ($null -eq $icon) { throw 'Executable icon is missing.' }
-          $icon.Dispose()
-          $env:LOCALAPPDATA = Join-Path $PWD '.local-appdata'
-          $process = Start-Process $exe -PassThru
-          try {
-            Start-Sleep -Seconds 6
-            $process.Refresh()
-            if ($process.HasExited) { throw 'The published executable exited during startup.' }
-            if ($process.MainWindowHandle -eq 0) { throw 'The published executable did not create a main window.' }
-            $null = $process.CloseMainWindow()
-            if (!$process.WaitForExit(10000)) { throw 'The published executable did not close normally.' }
-            if ($process.ExitCode -ne 0) { throw "The published executable returned exit code $($process.ExitCode)." }
-          } finally {
-            $process.Refresh()
-            if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }
-          }
-          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  SpotifyPopup.exe" | Set-Content 'core/bin/publish/win-x64/SpotifyPopup.exe.sha256' -Encoding ascii
+        run: ./tests/Smoke-Published.ps1
       - name: Upload executable and checksum
         uses: actions/upload-artifact@v4
         with:
@@ -126,3 +105,19 @@ jobs:
           gh release edit $tag --repo $env:GITHUB_REPOSITORY --draft=false --latest
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
           gh release view $tag --repo $env:GITHUB_REPOSITORY --json url --jq '.url'
+      - name: Remove merged development branch
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $branch = 'feat/desktop-v1.4.0'
+          $branches = gh api "repos/$env:GITHUB_REPOSITORY/branches" --jq '.[].name'
+          if ($LASTEXITCODE -ne 0) { throw 'Could not list branches.' }
+          if ($branch -notin $branches) { exit 0 }
+          $ref = gh api "repos/$env:GITHUB_REPOSITORY/git/ref/heads/$branch" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve development branch.' }
+          $head = $ref.object.sha
+          $comparison = gh api "repos/$env:GITHUB_REPOSITORY/compare/$head...$env:GITHUB_SHA" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $comparison.behind_by -ne 0) { throw 'Development branch has unmerged changes; cleanup stopped.' }
+          gh api --method DELETE "repos/$env:GITHUB_REPOSITORY/git/refs/heads/$branch"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not remove merged development branch.' }

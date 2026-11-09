@@ -359,7 +359,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             trayIcon = (System.Drawing.Icon)embeddedIcon.Clone();
             var menu = new Forms.ContextMenuStrip();
             trayVisibility = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Hide), null, (_, _) => Dispatch(ToggleVisibility));
-            trayLock = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Lock), null, (_, _) => Dispatch(() => { SetLocked(!locked); ShowPopup(false); }));
+            trayLock = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Lock), null, (_, _) => Dispatch(() => { visibility.Manual(true); SetLocked(!locked); ShowPopup(false); }));
             menu.Items.Add(trayVisibility); menu.Items.Add(trayLock);
             traySettings = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Settings), null, (_, _) => Dispatch(OpenSettings));
             trayExit = new Forms.ToolStripMenuItem(Localizer.Get(TextKeys.Exit), null, (_, _) => Dispatch(Close));
@@ -398,7 +398,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void SettingsClick(object sender, RoutedEventArgs e) => OpenSettings();
     private void OpenSettings()
     {
-        SetLocked(false); ShowPopup();
+        visibility.Manual(true); automaticallyHidden = false; SetLocked(false); ShowPopup();
         if (settingsWindow != null) { settingsWindow.Activate(); return; }
         CapturePlacement();
         var originalOpacity = settings.LockedOpacity;
@@ -430,6 +430,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void ApplyBackground()
     {
         if (settings.BackgroundMode == "artwork") { artworkBackground.Invalidate(); RefreshVisuals(media.Snapshot); return; }
+        artworkBackground.Invalidate();
         var palette = ArtworkPalette.Default;
         if (settings.BackgroundMode == "custom")
         {

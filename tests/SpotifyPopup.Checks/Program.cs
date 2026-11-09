@@ -106,6 +106,7 @@ internal static class Program
         Check(Localizer.Current.Culture.Name == "it" && restarted.Player.Title == "Apri Spotify e riproduci un brano", "Restart applies saved Italian before first window content");
         restarted.Close();
         await CheckTray(output);
+        checks += await DesktopChecks.Run(output);
         Console.WriteLine($"{checks} Windows UI checks passed. No real Spotify commands were issued.");
     }
     private static async Task CheckLanguages(MainWindow window, FakeController controller, SettingsStore store, string output)

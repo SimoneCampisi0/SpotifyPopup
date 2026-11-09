@@ -37,6 +37,7 @@ public sealed class AppSettings
     public bool HideWhenPaused { get; set; }
     public int PauseDelaySeconds { get; set; } = 60;
     public AppSettings Clone() => JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(this))!;
+    [System.Text.Json.Serialization.JsonIgnore]
     public string[] Shortcuts => new[] { ToggleShortcut, UnlockShortcut, PlayShortcut, PreviousShortcut, NextShortcut, BackwardShortcut, ForwardShortcut };
     public void Normalize()
     {

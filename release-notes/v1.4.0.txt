@@ -1,0 +1,35 @@
+Spotify Popup v1.4.0 — Windows startup and desktop controls
+
+Highlights
+- Start with Windows for the current user, with independent tray-only startup; both are off by default.
+- Single-instance activation: reopening reveals the existing popup and preserves its lock state.
+- Tray-only startup avoids displaying the popup; tray failures fall back to the visible window.
+- Startup paths containing spaces are quoted; saving Settings repairs a moved executable registration.
+
+Features
+- Artwork, fixed dark and custom-color backgrounds, with optional transitions.
+- Configurable automatic hiding after disconnection or prolonged pause, with manual visibility precedence.
+- Optional global media shortcuts for play/pause, previous/next and ten-second seeks.
+- Essential layout with independent placement and hover/keyboard-accessible controls.
+- On-demand stable-release update checks and the official download page in About.
+- Separate placement reset and confirmed preference reset.
+- English and Italian text for all new interface controls.
+
+Reliability
+- Eight-second media-operation deadlines, cancellation and stale-result invalidation.
+- Direct controller regression checks through an injectable Windows media boundary.
+- Default settings under LocalAppData, automatic legacy migration and explicit portable marker mode.
+- Corrupt settings backup and preservation when backup fails.
+- Bounded local diagnostic logs and Copy diagnostics.
+- Targeted property notifications and reduced hidden-window refresh frequency.
+
+Verification
+- Automated logic, controller, Windows desktop and UI regression checks run in GitHub Actions.
+- The Windows workflow publishes and smoke-tests the self-contained win-x64 executable and SHA-256 checksum.
+- UI verification images are uploaded as workflow artifacts.
+- Real Spotify playback, a real Windows sign-out/sign-in cycle, assistive technology and mixed-DPI monitors remain manual checks.
+
+Updating
+Exit the app and replace SpotifyPopup.exe. User-profile preferences persist automatically.
+For portable mode, retain SpotifyPopup.portable and SpotifyPopup.settings.json beside the executable.
+If you move an executable registered for startup, launch the new location and save startup settings to repair its path.

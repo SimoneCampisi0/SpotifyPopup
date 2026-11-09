@@ -129,10 +129,14 @@
     </Grid>
    </Grid>
    <Grid x:Name="EssentialLayout" Grid.Row="1" Visibility="Collapsed" MinHeight="44">
-    <Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="40"/></Grid.ColumnDefinitions>
+    <Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
     <Viewbox Width="40" Height="40"><ContentControl Content="{Binding Player}" ContentTemplate="{StaticResource CoverArt}"/></Viewbox>
     <TextBlock Grid.Column="1" Text="{Binding Player.Title}" Style="{StaticResource MetadataText}" FontSize="12" VerticalAlignment="Center" Margin="4,0,8,0"/>
-    <Button Grid.Column="2" Content="{Binding Player.PlayGlyph}" Style="{StaticResource GlassButton}" IsEnabled="{Binding Player.CanPlayPause}" ToolTip="{Binding Player.PlayLabel}" AutomationProperties.Name="{Binding Player.PlayLabel}" Click="PlayClick"/>
+    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+     <Button Content="&#xE892;" Width="28" Opacity="{Binding HeaderOpacity}" Style="{StaticResource GlassButton}" IsEnabled="{Binding Player.CanPrevious}" ToolTip="{loc:Text PreviousTrack}" AutomationProperties.Name="{loc:Text PreviousTrack}" Click="PreviousClick"/>
+     <Button Content="{Binding Player.PlayGlyph}" Style="{StaticResource GlassButton}" IsEnabled="{Binding Player.CanPlayPause}" ToolTip="{Binding Player.PlayLabel}" AutomationProperties.Name="{Binding Player.PlayLabel}" Click="PlayClick"/>
+     <Button Content="&#xE893;" Width="28" Opacity="{Binding HeaderOpacity}" Style="{StaticResource GlassButton}" IsEnabled="{Binding Player.CanNext}" ToolTip="{loc:Text NextTrack}" AutomationProperties.Name="{loc:Text NextTrack}" Click="NextClick"/>
+    </StackPanel>
    </Grid>
    <TextBlock Grid.Row="2" Text="{Binding Player.Notice}" Visibility="{Binding NoticeVisibility}" Foreground="#FFE4B2" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap" MaxHeight="30" ToolTip="{Binding Player.Notice}" AutomationProperties.LiveSetting="Polite"/>
   </Grid>
