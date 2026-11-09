@@ -19,7 +19,7 @@ Settings that are easier to navigate
 About and accessibility
 - Redesigned About with author, version, offline license disclosure, update checks and diagnostics.
 - English and Italian interface text, accessible control names, visible focus and preserved keyboard interaction.
-- Per-Monitor V2 DPI-awareness manifest and published-window verification.
+- Early Per-Monitor V2 DPI initialization and published-window verification.
 - Temporary warnings and disconnections do not permanently enlarge compact layouts.
 
 Compatibility

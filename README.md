@@ -19,7 +19,7 @@ The player uses a shared charcoal-and-mint design across the overlay, Settings, 
 - Resetting all preferences uses an inline confirmation, then requires Save. Cancel continues to preserve existing preferences.
 - About keeps the full offline license behind **Read the license**, with update and diagnostic actions together below it.
 
-The executable declares Per-Monitor V2 DPI awareness. The Windows packaging check verifies the published window's DPI-awareness context; real monitor-to-monitor transitions still require hands-on verification. Existing preferences and positions are preserved, with dimensions clamped where needed to fit the redesigned layouts.
+The executable initializes Per-Monitor V2 DPI awareness before creating app windows. The Windows packaging check verifies the published window's DPI-awareness context; real monitor-to-monitor transitions still require hands-on verification. Existing preferences and positions are preserved, with dimensions clamped where needed to fit the redesigned layouts.
 
 ## Features
 
