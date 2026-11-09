@@ -2,7 +2,7 @@ name: Windows checks and release
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/artwork-background-v1.3.0']
     paths:
       - 'core/**'
       - 'tests/**'
