@@ -2,7 +2,7 @@ name: Windows checks and release
 
 on:
   push:
-    branches: [main, 'feat/artwork-background-v1.3.0']
+    branches: [main, 'feat/**']
     paths:
       - 'core/**'
       - 'tests/**'
@@ -54,6 +54,7 @@ jobs:
           $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
           if ($null -eq $icon) { throw 'Executable icon is missing.' }
           $icon.Dispose()
+          $env:LOCALAPPDATA = Join-Path $PWD '.local-appdata'
           $process = Start-Process $exe -PassThru
           try {
             Start-Sleep -Seconds 6
@@ -125,28 +126,3 @@ jobs:
           gh release edit $tag --repo $env:GITHUB_REPOSITORY --draft=false --latest
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
           gh release view $tag --repo $env:GITHUB_REPOSITORY --json url --jq '.url'
-      - name: Remove completed v1.3.0 development branches
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          [xml]$project = Get-Content 'core/SpotifyPopup.csproj'
-          if ([string]$project.Project.PropertyGroup.Version -ne '1.3.0') { exit 0 }
-          $branches = @('feat/artwork-background-v1.3.0', 'feat/desktop-usability-v1.1.0')
-          $existingBranches = gh api --paginate "repos/$env:GITHUB_REPOSITORY/branches" --jq '.[].name'
-          if ($LASTEXITCODE -ne 0) { throw 'Could not list branches before cleanup.' }
-          foreach ($branch in $branches) {
-            if ($branch -notin $existingBranches) { continue }
-            $ref = gh api "repos/$env:GITHUB_REPOSITORY/git/ref/heads/$branch" 2>$null
-            if ($LASTEXITCODE -ne 0) { throw "Could not resolve branch before cleanup: $branch" }
-            $head = ($ref | ConvertFrom-Json).object.sha
-            if ($branch -eq 'feat/desktop-usability-v1.1.0') {
-              # This old branch was squash-merged; refuse to delete it if anyone added new commits.
-              if ($head -ne '4d19617103c90dd2cb2c9b3932ec09a288d8d8bf') { throw 'The old development branch has changed; cleanup stopped.' }
-            } else {
-              $comparison = gh api "repos/$env:GITHUB_REPOSITORY/compare/$head...$env:GITHUB_SHA" | ConvertFrom-Json
-              if ($LASTEXITCODE -ne 0 -or $comparison.behind_by -ne 0) { throw 'The feature branch is not fully merged into this release commit.' }
-            }
-            gh api --method DELETE "repos/$env:GITHUB_REPOSITORY/git/refs/heads/$branch"
-            if ($LASTEXITCODE -ne 0) { throw "Could not remove completed branch: $branch" }
-          }

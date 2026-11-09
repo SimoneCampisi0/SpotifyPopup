@@ -1,11 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
 <root>
-  <data name="About" xml:space="preserve"><value>About</value></data>
-  <data name="AboutTitle" xml:space="preserve"><value>About Spotify Popup</value></data>
-  <data name="CreatedBy" xml:space="preserve"><value>Created by</value></data>
-  <data name="License" xml:space="preserve"><value>License</value></data>
-  <data name="LicenseName" xml:space="preserve"><value>GNU General Public License v3.0</value></data>
-  <data name="LicenseText" xml:space="preserve"><value>Full GNU GPL v3.0 license text</value></data>
-  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="AboutTitle" xml:space="preserve">
+    <value>About Spotify Popup</value>
+  </data>
+  <data name="CreatedBy" xml:space="preserve">
+    <value>Created by</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>License</value>
+  </data>
+  <data name="LicenseName" xml:space="preserve">
+    <value>GNU General Public License v3.0</value>
+  </data>
+  <data name="LicenseText" xml:space="preserve">
+    <value>Full GNU GPL v3.0 license text</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -176,5 +191,140 @@
   </data>
   <data name="ShortcutBusy" xml:space="preserve">
     <value>Una scorciatoia Ã¨ giÃ  in uso. Scegli un'altra combinazione.</value>
+  </data>
+  <data name="StartupHeading" xml:space="preserve">
+    <value>Avvio</value>
+  </data>
+  <data name="StartWithWindows" xml:space="preserve">
+    <value>Avvia con Windows</value>
+  </data>
+  <data name="StartInTray" xml:space="preserve">
+    <value>Avvia nell’area di notifica</value>
+  </data>
+  <data name="StartupHint" xml:space="preserve">
+    <value>Solo per il tuo account Windows. Conserva l’eseguibile in un percorso stabile. Salva per correggere il percorso di avvio.</value>
+  </data>
+  <data name="StartupFailed" xml:space="preserve">
+    <value>Impossibile aggiornare l’avvio con Windows. Nessuna preferenza è stata applicata.</value>
+  </data>
+  <data name="StartupMoved" xml:space="preserve">
+    <value>La voce di avvio Windows manca o punta altrove. Apri Impostazioni e salva per correggerla.</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Aspetto</value>
+  </data>
+  <data name="BackgroundMode" xml:space="preserve">
+    <value>Sfondo</value>
+  </data>
+  <data name="ArtworkBackground" xml:space="preserve">
+    <value>Copertina del brano</value>
+  </data>
+  <data name="FixedBackground" xml:space="preserve">
+    <value>Tema scuro fisso</value>
+  </data>
+  <data name="CustomBackground" xml:space="preserve">
+    <value>Colore personale</value>
+  </data>
+  <data name="BackgroundColor" xml:space="preserve">
+    <value>Colore personale (#RRGGBB)</value>
+  </data>
+  <data name="ColorHint" xml:space="preserve">
+    <value>I colori personali vengono scuriti per mantenere il testo leggibile.</value>
+  </data>
+  <data name="AnimateBackground" xml:space="preserve">
+    <value>Anima i cambiamenti dello sfondo</value>
+  </data>
+  <data name="InvalidColor" xml:space="preserve">
+    <value>Inserisci un colore come #24483C.</value>
+  </data>
+  <data name="VisibilityHeading" xml:space="preserve">
+    <value>Visibilità automatica</value>
+  </data>
+  <data name="HideDisconnected" xml:space="preserve">
+    <value>Nascondi quando Spotify è scollegato (dopo 5 secondi)</value>
+  </data>
+  <data name="HidePaused" xml:space="preserve">
+    <value>Nascondi dopo una pausa prolungata</value>
+  </data>
+  <data name="PauseDelay" xml:space="preserve">
+    <value>Attesa in pausa, in secondi (10–3600)</value>
+  </data>
+  <data name="VisibilityHint" xml:space="preserve">
+    <value>La riproduzione riapre il popup nascosto automaticamente. Mostra/nascondi manuale prevale fino a un cambio di riproduzione o connessione.</value>
+  </data>
+  <data name="InvalidDelay" xml:space="preserve">
+    <value>Inserisci un numero intero tra 10 e 3600.</value>
+  </data>
+  <data name="PlaybackShortcuts" xml:space="preserve">
+    <value>Scorciatoie di riproduzione (facoltative)</value>
+  </data>
+  <data name="PlayShortcut" xml:space="preserve">
+    <value>Riproduci / pausa</value>
+  </data>
+  <data name="PreviousShortcut" xml:space="preserve">
+    <value>Brano precedente</value>
+  </data>
+  <data name="NextShortcut" xml:space="preserve">
+    <value>Brano successivo</value>
+  </data>
+  <data name="BackwardShortcut" xml:space="preserve">
+    <value>Indietro di 10 secondi</value>
+  </data>
+  <data name="ForwardShortcut" xml:space="preserve">
+    <value>Avanti di 10 secondi</value>
+  </data>
+  <data name="OptionalShortcutHint" xml:space="preserve">
+    <value>Lascia vuoto per disattivare. Le azioni richiedono il relativo controllo esposto da Spotify.</value>
+  </data>
+  <data name="RecoveryHeading" xml:space="preserve">
+    <value>Ripristino</value>
+  </data>
+  <data name="ResetPlacement" xml:space="preserve">
+    <value>Ripristina posizione e dimensioni</value>
+  </data>
+  <data name="ResetPlacementHint" xml:space="preserve">
+    <value>Applicato subito a tutti e tre i layout.</value>
+  </data>
+  <data name="ResetAll" xml:space="preserve">
+    <value>Ripristina tutte le preferenze…</value>
+  </data>
+  <data name="ResetConfirm" xml:space="preserve">
+    <value>Sostituire le impostazioni della finestra con i valori iniziali? Premi Salva per applicarli, inclusa la disattivazione dell’avvio Windows.</value>
+  </data>
+  <data name="EssentialMode" xml:space="preserve">
+    <value>Layout essenziale</value>
+  </data>
+  <data name="CheckUpdates" xml:space="preserve">
+    <value>Controlla aggiornamenti</value>
+  </data>
+  <data name="CheckingUpdates" xml:space="preserve">
+    <value>Controllo aggiornamenti…</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>Hai l’ultima versione stabile.</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Nuova versione disponibile: {0}</value>
+  </data>
+  <data name="OpenDownload" xml:space="preserve">
+    <value>Apri download della release</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Impossibile controllare gli aggiornamenti. Riprova più tardi.</value>
+  </data>
+  <data name="CopyDiagnostics" xml:space="preserve">
+    <value>Copia diagnostica</value>
+  </data>
+  <data name="DiagnosticsCopied" xml:space="preserve">
+    <value>Diagnostica copiata.</value>
+  </data>
+  <data name="DiagnosticsFailed" xml:space="preserve">
+    <value>Impossibile copiare la diagnostica.</value>
+  </data>
+  <data name="MediaTimedOut" xml:space="preserve">
+    <value>Spotify ha impiegato troppo tempo a rispondere. Riconnessione…</value>
+  </data>
+  <data name="LogoName" xml:space="preserve">
+    <value>Logo di Spotify Popup</value>
   </data>
 </root>

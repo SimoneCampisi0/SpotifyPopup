@@ -5,7 +5,7 @@
  Title="Spotify Popup" Icon="/SpotifyPopup;component/Assets/logo.ico" Width="390" Height="270" MinWidth="330" MinHeight="255"
  WindowStyle="None" AllowsTransparency="True" Background="Transparent" Topmost="True"
  ResizeMode="CanResizeWithGrip" Loaded="OnLoaded" Closed="OnClosed" SourceInitialized="OnSourceInitialized"
- LocationChanged="OnLocationChanged" SizeChanged="OnSizeChanged" UseLayoutRounding="True" SnapsToDevicePixels="True">
+ MouseEnter="HoverChanged" MouseLeave="HoverChanged" IsKeyboardFocusWithinChanged="HoverChanged" LocationChanged="OnLocationChanged" SizeChanged="OnSizeChanged" UseLayoutRounding="True" SnapsToDevicePixels="True">
  <shell:WindowChrome.WindowChrome>
   <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="18" GlassFrameThickness="0"/>
  </shell:WindowChrome.WindowChrome>
@@ -63,13 +63,13 @@
   <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop x:Name="BackgroundStart" Color="#F32F3D39" Offset="0"/><GradientStop x:Name="BackgroundEnd" Color="#F30C1515" Offset="1"/></LinearGradientBrush></Border.Background>
   <Border.ContextMenu><ContextMenu>
    <MenuItem Header="{loc:Text Hide}" Click="HideClick"/>
-   <MenuItem Header="{loc:Text SwitchLayout}" Click="CompactClick"/>
+   <MenuItem Header="{loc:Text SwitchLayout}" Click="CompactClick"/><MenuItem Header="{loc:Text EssentialMode}" Click="EssentialClick"/>
    <MenuItem Header="{loc:Text Settings}" Click="SettingsClick"/>
    <Separator/><MenuItem Header="{loc:Text Exit}" Click="ExitClick"/>
   </ContextMenu></Border.ContextMenu>
   <Grid Margin="14,8,14,10">
    <Grid.RowDefinitions><RowDefinition Height="32"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-   <Grid>
+   <Grid Opacity="{Binding HeaderOpacity}">
     <Button Content="&#xE8BB;" Style="{StaticResource GlassButton}" HorizontalAlignment="Left" ToolTip="{loc:Text ExitPopup}" AutomationProperties.Name="{loc:Text ExitPopup}" Click="ExitClick"/>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
      <Button Content="&#xE8A7;" Style="{StaticResource GlassButton}" ToolTip="{loc:Text SwitchLayoutHint}" AutomationProperties.Name="{loc:Text SwitchLayoutHint}" Click="CompactClick"/>
@@ -128,7 +128,13 @@
      <Button Grid.Column="3" Content="{loc:Text OpenSpotify}" FontFamily="Segoe UI" Style="{StaticResource GlassButton}" Width="88" Height="24" FontSize="10" Margin="4,0,0,0" Visibility="{Binding OpenSpotifyVisibility}" AutomationProperties.Name="{loc:Text OpenSpotify}" Click="OpenSpotifyClick"/>
     </Grid>
    </Grid>
-   <TextBlock Grid.Row="2" Text="{Binding Player.Notice}" Visibility="{Binding NoticeVisibility}" Foreground="#FFE4B2" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap" ToolTip="{Binding Player.Notice}" AutomationProperties.LiveSetting="Polite"/>
+   <Grid x:Name="EssentialLayout" Grid.Row="1" Visibility="Collapsed" MinHeight="44">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="40"/></Grid.ColumnDefinitions>
+    <Viewbox Width="40" Height="40"><ContentControl Content="{Binding Player}" ContentTemplate="{StaticResource CoverArt}"/></Viewbox>
+    <TextBlock Grid.Column="1" Text="{Binding Player.Title}" Style="{StaticResource MetadataText}" FontSize="12" VerticalAlignment="Center" Margin="4,0,8,0"/>
+    <Button Grid.Column="2" Content="{Binding Player.PlayGlyph}" Style="{StaticResource GlassButton}" IsEnabled="{Binding Player.CanPlayPause}" ToolTip="{Binding Player.PlayLabel}" AutomationProperties.Name="{Binding Player.PlayLabel}" Click="PlayClick"/>
+   </Grid>
+   <TextBlock Grid.Row="2" Text="{Binding Player.Notice}" Visibility="{Binding NoticeVisibility}" Foreground="#FFE4B2" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap" MaxHeight="30" ToolTip="{Binding Player.Notice}" AutomationProperties.LiveSetting="Polite"/>
   </Grid>
  </Border>
 </Window>

@@ -61,8 +61,30 @@ public sealed class PlayerState : INotifyPropertyChanged, IDisposable
     public string Elapsed => PlaybackMath.Format(snapshot.Position);
     public string Duration => PlaybackMath.Format(snapshot.Duration);
     public string Notice => Localizer.Get(notice);
-    public void Apply(MediaSnapshot value) { snapshot = value; Changed(); }
-    public void SetWorking(bool value) { working = value; Changed(); }
-    public void SetNotice(string value) { notice = value; Changed(); }
+    public void Apply(MediaSnapshot value)
+    {
+        if (value == snapshot) return;
+        var old = snapshot; snapshot = value;
+        if (old.Title != value.Title || old.TitleFallbackKey != value.TitleFallbackKey) Raise(nameof(Title));
+        if (old.Artist != value.Artist) Raise(nameof(Artist));
+        if (old.Album != value.Album) Raise(nameof(Album));
+        if (old.Status != value.Status) Raise(nameof(Status));
+        if (!ReferenceEquals(old.Artwork, value.Artwork)) Raise(nameof(Artwork));
+        if (old.Connected != value.Connected) Raise(nameof(Connected));
+        if (old.Playing != value.Playing) { Raise(nameof(Playing)); Raise(nameof(PlayGlyph)); Raise(nameof(PlayLabel)); }
+        if (old.CanPlayPause != value.CanPlayPause) Raise(nameof(CanPlayPause));
+        if (old.CanPrevious != value.CanPrevious) Raise(nameof(CanPrevious));
+        if (old.CanNext != value.CanNext) Raise(nameof(CanNext));
+        if (old.CanSeek != value.CanSeek) Raise(nameof(CanSeek));
+        if (PlaybackMath.Format(old.Position) != Elapsed) Raise(nameof(Elapsed));
+        if (PlaybackMath.Format(old.Duration) != Duration) Raise(nameof(Duration));
+    }
+    public void SetWorking(bool value)
+    {
+        if (working == value) return; working = value;
+        Raise(nameof(CanPlayPause)); Raise(nameof(CanPrevious)); Raise(nameof(CanNext)); Raise(nameof(CanSeek));
+    }
+    public void SetNotice(string value) { if (notice == value) return; notice = value; Raise(nameof(Notice)); }
+    private void Raise(string property) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
     private void Changed() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
 }

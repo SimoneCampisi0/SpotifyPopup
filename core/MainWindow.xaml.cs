@@ -22,7 +22,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly bool enableShell;
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly DispatcherTimer saveTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
-    private readonly AppSettings settings;
+    private AppSettings settings;
+    private readonly AutoVisibilityPolicy visibility = new();
+    private readonly StartupRegistration startup = new();
+    private bool runtimeStarted, automaticallyHidden;
+    private bool refreshingVisuals;
     private HwndSource? source;
     private HotkeyManager? hotkeys;
     private Forms.NotifyIcon? tray;
@@ -37,6 +41,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private string? startupWarning;
     public PlayerState Player { get; } = new();
     public event PropertyChangedEventHandler? PropertyChanged;
+    public double HeaderOpacity => !settings.EssentialMode || IsMouseOver || IsKeyboardFocusWithin ? 1 : 0;
     public Visibility AlbumVisibility => settings.ShowAlbum && !string.IsNullOrEmpty(Player.Album) ? Visibility.Visible : Visibility.Collapsed;
     public Visibility OpenSpotifyVisibility => Player.Connected ? Visibility.Collapsed : Visibility.Visible;
     public Visibility NoticeVisibility => string.IsNullOrEmpty(Player.Notice) ? Visibility.Collapsed : Visibility.Visible;
@@ -51,14 +56,19 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Localizer.Current.PropertyChanged += LanguageChanged;
         media = controller ?? new MediaController(Dispatcher);
         media.Updated += OnMediaUpdated; media.Notice += OnNotice;
-        Player.PropertyChanged += (_, _) => { MinHeight = settings.CompactMode ? (string.IsNullOrEmpty(Player.Notice) ? 138 : 190) : 255; Changed(); };
+        Player.PropertyChanged += PlayerChanged;
         ApplyLayout();
         timer.Tick += (_, _) =>
         {
             media.Tick();
+            EvaluateVisibility();
             if (noticeUntil != default && DateTimeOffset.UtcNow >= noticeUntil) { noticeUntil = default; Player.SetNotice(""); }
         };
         saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveSettings(); };
+    }
+    private void PlayerChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(PlayerState.Album) or nameof(PlayerState.Connected) or nameof(PlayerState.Notice) or "") Changed();
     }
     private void Changed() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     private void LanguageChanged(object? sender, PropertyChangedEventArgs e)
@@ -77,27 +87,73 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         source?.AddHook(WindowHook);
         if (enableShell && source != null)
         {
-            hotkeys = new HotkeyManager(source, ToggleVisibility, () => { SetLocked(false); ShowPopup(); });
-            if (!hotkeys.TryApply(settings.ToggleShortcut, settings.UnlockShortcut, out var error)) startupWarning = error;
+            hotkeys = new HotkeyManager(source, ToggleVisibility, () => { SetLocked(false); RevealExisting(); },
+                () => _ = RunCommand(MediaAction.PlayPause), () => _ = RunCommand(MediaAction.Previous), () => _ = RunCommand(MediaAction.Next),
+                () => SeekRelative(-10), () => SeekRelative(10));
+            if (!hotkeys.TryApply(settings, out var error)) startupWarning = error;
+            SetupTray(); SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
         }
     }
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    public void Start()
     {
-        RestorePosition(); restoring = false;
-        if (enableShell) { SetupTray(); SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged; }
-        if (startupWarning != null) ShowNotice(startupWarning);
-        timer.Start();
-        try { await media.InitializeAsync(); }
-        catch (Exception) { OnMediaUpdated(this, new MediaSnapshot { Status = TextKeys.MediaUnavailable }); }
+        if (settings.StartInTray && enableShell)
+        {
+            new WindowInteropHelper(this).EnsureHandle();
+            if (tray != null) { visibility.Manual(false); InitializeRuntime(); return; }
+        }
+        Show();
     }
+    internal void RevealExisting() { visibility.Manual(true); automaticallyHidden = false; ShowPopup(); }
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        RestorePosition(); restoring = false; InitializeRuntime();
+    }
+    private async void InitializeRuntime()
+    {
+        if (runtimeStarted) return;
+        runtimeStarted = true;
+        if (enableShell && settings.StartWithWindows)
+        {
+            try { if (!startup.Matches(true)) startupWarning = TextKeys.StartupMoved; }
+            catch (Exception ex) { Diagnostics.Record("startup-check", ex); startupWarning = TextKeys.StartupFailed; }
+        }
+        if (startupWarning != null) ShowNotice(startupWarning);
+        ApplyBackground(); timer.Start();
+        try { await media.InitializeAsync(); }
+        catch (Exception ex) { Diagnostics.Record("media-load", ex); OnMediaUpdated(this, new MediaSnapshot { Status = TextKeys.MediaUnavailable }); }
+    }
+    private void SeekRelative(double seconds)
+    {
+        var snapshot = media.Snapshot;
+        if (snapshot.CanSeek && snapshot.Duration > 0)
+            _ = RunCommand(MediaAction.Seek, Math.Clamp((snapshot.Position + seconds) / snapshot.Duration, 0, 1), snapshot.TrackKey);
+    }
+    private void EvaluateVisibility()
+    {
+        timer.Interval = TimeSpan.FromMilliseconds(IsVisible ? 500 : 2000);
+        if (settingsWindow != null) return;
+        var desired = visibility.Evaluate(Player.Connected, Player.Playing, DateTimeOffset.UtcNow, settings);
+        if (desired == false && IsVisible) { unlock?.Hide(); Hide(); automaticallyHidden = true; UpdateTray(); }
+        else if (desired == true && automaticallyHidden) { automaticallyHidden = false; ShowPopup(false); }
+    }
+    private void HoverChanged(object sender, RoutedEventArgs e) => Changed();
     private void OnMediaUpdated(object? sender, MediaSnapshot snapshot)
     {
         if (closed) return;
         if (!Dispatcher.CheckAccess()) { Dispatcher.BeginInvoke(new Action(() => OnMediaUpdated(sender, snapshot))); return; }
         if (editingSlider != null && (!snapshot.CanSeek || editingTrackKey != snapshot.TrackKey)) CancelSeek();
         Player.Apply(snapshot);
-        _ = artworkBackground.UpdateAsync(snapshot);
-        if (editingSlider == null) UpdateProgress(snapshot);
+        if (IsVisible && !refreshingVisuals) RefreshVisuals(snapshot);
+    }
+    private void RefreshVisuals(MediaSnapshot snapshot)
+    {
+        refreshingVisuals = true;
+        try
+        {
+            if (settings.BackgroundMode == "artwork") _ = artworkBackground.UpdateAsync(snapshot);
+            if (editingSlider == null) UpdateProgress(snapshot);
+        }
+        finally { refreshingVisuals = false; }
     }
     private void UpdateProgress(MediaSnapshot snapshot)
     {
@@ -107,15 +163,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
     private void ApplyPalette(ArtworkPalette palette)
     {
-        if (closed || palette == currentPalette) return;
+        if (closed || (palette == currentPalette && settings.AnimateBackground)) return;
         currentPalette = palette;
-        static void Animate(GradientStop stop, ArtworkColor color)
+        void Animate(GradientStop stop, ArtworkColor color)
         {
             var from = stop.Color; // Includes the current animation value when a track interrupts it.
             var target = Color.FromArgb(243, color.R, color.G, color.B);
             stop.BeginAnimation(GradientStop.ColorProperty, null);
             // Keep the base value at the visible color until the replacement clock starts.
             stop.Color = from;
+            if (!settings.AnimateBackground) { stop.Color = target; return; }
             stop.BeginAnimation(GradientStop.ColorProperty, new ColorAnimation(from, target, TimeSpan.FromMilliseconds(500))
             {
                 FillBehavior = FillBehavior.HoldEnd,
@@ -139,7 +196,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (closed || runningCommand) return;
         runningCommand = true; Player.SetWorking(true);
         try { await media.ExecuteAsync(action, fraction, key); }
-        catch (Exception) { ShowNotice(TextKeys.CommandFailed); }
+        catch (Exception ex) { Diagnostics.Record("player-command", ex); ShowNotice(TextKeys.CommandFailed); }
         finally { runningCommand = false; if (!closed) { Player.SetWorking(false); UpdateProgress(media.Snapshot); } }
     }
     private async void PlayClick(object sender, RoutedEventArgs e) => await RunCommand(MediaAction.PlayPause);
@@ -233,7 +290,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var point = LockButton.PointToScreen(new Point(0, 0));
         NativeMethods.Move(unlock, (int)Math.Round(point.X), (int)Math.Round(point.Y));
     }
-    private WindowPlacement Placement => settings.CompactMode ? settings.Compact : settings.Normal;
+    private WindowPlacement Placement => settings.EssentialMode ? settings.Essential : settings.CompactMode ? settings.Compact : settings.Normal;
     private void CapturePlacement()
     {
         if (restoring || !IsLoaded || WindowState != WindowState.Normal) return;
@@ -242,10 +299,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
     private void ApplyLayout()
     {
-        var compact = settings.CompactMode;
-        MinWidth = compact ? 360 : 330; MinHeight = compact ? (string.IsNullOrEmpty(Player.Notice) ? 138 : 190) : 255;
-        NormalLayout.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
-        CompactLayout.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
+        var compact = settings.CompactMode; var essential = settings.EssentialMode;
+        MinWidth = essential ? 260 : compact ? 360 : 330; MinHeight = essential ? 112 : compact ? 138 : 255;
+        NormalLayout.Visibility = !compact && !essential ? Visibility.Visible : Visibility.Collapsed;
+        CompactLayout.Visibility = compact && !essential ? Visibility.Visible : Visibility.Collapsed;
+        EssentialLayout.Visibility = essential ? Visibility.Visible : Visibility.Collapsed;
         Width = Math.Max(MinWidth, Placement.Width); Height = Math.Max(MinHeight, Placement.Height);
         Changed();
     }
@@ -258,8 +316,23 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     internal void ToggleCompact()
     {
         CapturePlacement(); restoring = true;
-        settings.CompactMode = !settings.CompactMode; ApplyLayout(); UpdateLayout(); RestorePosition();
+        settings.EssentialMode = false; settings.CompactMode = !settings.CompactMode; ApplyLayout(); UpdateLayout(); RestorePosition();
         restoring = false; QueueSave();
+    }
+    private void EssentialClick(object sender, RoutedEventArgs e)
+    {
+        CapturePlacement(); restoring = true;
+        settings.EssentialMode = !settings.EssentialMode; settings.CompactMode = false;
+        ApplyLayout(); UpdateLayout(); RestorePosition(); restoring = false; QueueSave();
+    }
+    private void ResetPlacement()
+    {
+        settings.Normal = new(); settings.Compact = new() { Width = 460, Height = 142 };
+        settings.Essential = new() { Width = 330, Height = 112 };
+        restoring = true; ApplyLayout(); WindowStartupLocation = WindowStartupLocation.Manual;
+        var area = Forms.Screen.PrimaryScreen!.WorkingArea;
+        NativeMethods.Move(this, area.Left + 30, area.Top + 30); NativeMethods.EnsureVisible(this);
+        restoring = false; PositionUnlock(); SaveSettings();
     }
     private void OnLocationChanged(object? sender, EventArgs e) { PositionUnlock(); QueueSave(); }
     private void OnSizeChanged(object sender, SizeChangedEventArgs e) { PositionUnlock(); QueueSave(); }
@@ -292,10 +365,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             menu.Items.Add(traySettings);
             menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add(trayExit);
             tray = new Forms.NotifyIcon { Text = "Spotify Popup", Icon = trayIcon, ContextMenuStrip = menu, Visible = true };
-            tray.DoubleClick += (_, _) => Dispatch(() => ShowPopup());
+            tray.DoubleClick += (_, _) => Dispatch(RevealExisting);
             UpdateTray();
         }
-        catch (Exception) { ShowNotice(TextKeys.TrayFailed); }
+        catch (Exception ex) { Diagnostics.Record("tray", ex); ShowNotice(TextKeys.TrayFailed); }
     }
     private void Dispatch(Action action) { if (!closed) Dispatcher.BeginInvoke(action); }
     private void UpdateTray()
@@ -307,14 +380,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
     private void ToggleVisibility()
     {
-        if (IsVisible && WindowState != WindowState.Minimized) { unlock?.Hide(); Hide(); }
-        else ShowPopup();
+        var show = !IsVisible || WindowState == WindowState.Minimized;
+        visibility.Manual(show); automaticallyHidden = false;
+        if (!show) { unlock?.Hide(); Hide(); } else ShowPopup();
         UpdateTray();
     }
     private void ShowPopup(bool activate = true)
     {
         if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
-        Show(); NativeMethods.EnsureVisible(this);
+        Show(); NativeMethods.EnsureVisible(this); RefreshVisuals(media.Snapshot);
         if (locked && unlock != null) { unlock.Show(); PositionUnlock(); }
         if (activate && !locked) Activate();
         UpdateTray();
@@ -325,28 +399,49 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         SetLocked(false); ShowPopup();
         if (settingsWindow != null) { settingsWindow.Activate(); return; }
+        CapturePlacement();
         var originalOpacity = settings.LockedOpacity;
         settingsWindow = new SettingsWindow(settings, value => { Opacity = value; },
-            (toggle, unlockValue) => hotkeys == null ? null : hotkeys.TryApply(toggle, unlockValue, out var error) ? null : error);
+            (_, _) => ValidateSettings(settingsWindow!.Draft), ResetPlacement);
         settingsWindow.Owner = this;
         var dialog = settingsWindow;
         try
         {
             if (dialog.ShowDialog() == true)
             {
-                settings.ShowAlbum = dialog.ShowAlbum; settings.SnapToEdges = dialog.SnapToEdges;
-                settings.LockedOpacity = dialog.LockedOpacity; settings.ToggleShortcut = dialog.ToggleShortcut; settings.UnlockShortcut = dialog.UnlockShortcut;
-                settings.Language = dialog.SelectedLanguage; Localizer.Current.Apply(settings.Language);
-                Changed(); SaveSettings();
+                settings = dialog.Draft; settings.Normalize(); Localizer.Current.Apply(settings.Language);
+                if (dialog.ResetRequested) { ApplyLayout(); ResetPlacement(); }
+                visibility.Reset(); ApplyBackground(); Changed(); SaveSettings();
             }
             else settings.LockedOpacity = originalOpacity;
         }
         finally { settingsWindow = null; Opacity = 1; }
     }
+    private string? ValidateSettings(AppSettings candidate)
+    {
+        if (hotkeys != null && !hotkeys.TryApply(candidate, out var error)) return error;
+        if (enableShell && !startup.TryApply(candidate.StartWithWindows))
+        {
+            hotkeys?.TryApply(settings, out _); return TextKeys.StartupFailed;
+        }
+        return null;
+    }
+    private void ApplyBackground()
+    {
+        if (settings.BackgroundMode == "artwork") { artworkBackground.Invalidate(); RefreshVisuals(media.Snapshot); return; }
+        var palette = ArtworkPalette.Default;
+        if (settings.BackgroundMode == "custom")
+        {
+            var color = (Color)ColorConverter.ConvertFromString(settings.BackgroundColor);
+            palette = ArtworkPaletteExtractor.Extract(new byte[] { color.B, color.G, color.R, 255 });
+        }
+        // Force applying a palette when transitions have just been disabled.
+        currentPalette = new(new(255, 255, 255), new(255, 255, 255)); ApplyPalette(palette);
+    }
     private void OpenSpotifyClick(object sender, RoutedEventArgs e)
     {
         try { Process.Start(new ProcessStartInfo("spotify:") { UseShellExecute = true }); }
-        catch (Exception) { ShowNotice(TextKeys.SpotifyOpenFailed); }
+        catch (Exception ex) { Diagnostics.Record("open-spotify", ex); ShowNotice(TextKeys.SpotifyOpenFailed); }
     }
     private void ExitClick(object sender, RoutedEventArgs e) => Close();
     private void OnClosed(object? sender, EventArgs e)
@@ -356,7 +451,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         artworkBackground.Dispose();
         BackgroundStart.BeginAnimation(GradientStop.ColorProperty, null); BackgroundEnd.BeginAnimation(GradientStop.ColorProperty, null);
         timer.Stop(); saveTimer.Stop(); media.Updated -= OnMediaUpdated; media.Notice -= OnNotice; media.Dispose();
-        Localizer.Current.PropertyChanged -= LanguageChanged; Player.Dispose();
+        Localizer.Current.PropertyChanged -= LanguageChanged; Player.PropertyChanged -= PlayerChanged; Player.Dispose();
         if (enableShell) SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         hotkeys?.Dispose(); source?.RemoveHook(WindowHook); unlock?.Close();
         if (tray != null) { tray.Visible = false; tray.ContextMenuStrip?.Dispose(); tray.Dispose(); }

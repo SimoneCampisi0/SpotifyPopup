@@ -29,6 +29,7 @@ internal sealed class ArtworkBackgroundService : IDisposable
         this.dispatcher = dispatcher; this.apply = apply;
         this.analyze = analyze ?? ((image, token) => Task.Run(() => Analyze(image, token), token));
     }
+    internal void Invalidate() => lastSession = -1;
     internal async Task UpdateAsync(MediaSnapshot snapshot)
     {
         dispatcher.VerifyAccess();
