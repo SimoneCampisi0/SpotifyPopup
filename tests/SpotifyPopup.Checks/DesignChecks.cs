@@ -16,8 +16,13 @@ internal static class DesignChecks
         void Check(bool value, string name) { if (!value) throw new Exception(name); count++; Console.WriteLine("PASS " + name); }
         async Task Pump() { await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); }
         var store = new SettingsStore(System.IO.Path.Combine(output, "design-player.json"));
-        store.Save(new AppSettings { Language = "en", AnimateBackground = false });
+        store.Save(new AppSettings { Language = "en", AnimateBackground = false, AccentColor = "#EEA367", CoverSizePercent = 110 });
         var controller = new Fake(); var player = new MainWindow(controller, store, false); player.Show();
+        Check(((SolidColorBrush)player.TryFindResource("AccentBrush")).Color == Color.FromRgb(238, 163, 103),
+            "Custom accent is applied to the live WPF palette");
+        Check(Math.Abs(((System.Windows.Controls.Viewbox)player.FindName("NormalArtwork")).Width - 105.6) < .01,
+            "Artwork size preference is applied to the real player");
+
         controller.Publish(new MediaSnapshot { Title = "Slow Motion", Artist = "Nights & Days", Album = "After Hours · 2026", Artwork = Cover(),
             Connected = true, Playing = true, Status = TextKeys.Playing, CanPlayPause = true, CanPrevious = true, CanNext = true, CanSeek = true, Duration = 242, Position = 87, TrackKey = "design" });
         await Pump(); await Task.Delay(100);
