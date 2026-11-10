@@ -507,7 +507,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Topmost = settings.AlwaysOnTop;
         var size = 96 * settings.CoverSizePercent / 100d;
         NormalArtwork.Width = NormalArtwork.Height = size;
-        if (TryFindResource("AccentBrush") is SolidColorBrush brush)
+        if (TryFindResource("AccentBrush") is SolidColorBrush brush && !brush.IsFrozen)
             brush.Color = (Color)ColorConverter.ConvertFromString(settings.AccentColor);
         Changed();
     }
