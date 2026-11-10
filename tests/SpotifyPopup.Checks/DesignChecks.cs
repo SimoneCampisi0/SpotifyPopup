@@ -37,7 +37,7 @@ internal static class DesignChecks
         Check(play.Template.FindName("Surface", play) is Border, "Player uses the shared rounded button template");
         ((Button)player.FindName("MenuButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Pump();
         var menu = ((Border)player.FindName("RootSurface")).ContextMenu;
-        Check(menu.IsOpen && menu.Items.OfType<MenuItem>().Count(i => i.IsCheckable && i.IsChecked) == 1, "Player menu opens with exactly one active layout");
+        Check(menu.IsOpen && menu.Items.OfType<MenuItem>().Count(i => i.IsCheckable && i.IsChecked && (string?)i.Header != Localizer.Get(TextKeys.AlwaysOnTop)) == 1, "Player menu opens with exactly one active layout");
         Save(menu, System.IO.Path.Combine(output, "design-player-menu.png")); menu.IsOpen = false;
         player.ToggleCompact(); player.Width = 420; player.Height = player.MinHeight; await Pump();
         Save(player, System.IO.Path.Combine(output, "design-compact.png"));
