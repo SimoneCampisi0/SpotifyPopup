@@ -456,6 +456,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             {
                 settings = dialog.Draft; settings.Normalize(); Localizer.Current.Apply(settings.Language);
                 if (dialog.ResetRequested) { ApplyLayout(); ResetPlacement(); }
+                else if (dialog.ResetPlacementRequested) ResetPlacement();
                 visibility.Reset(); ApplyBackground(); Changed(); SaveSettings();
             }
             else settings.LockedOpacity = originalOpacity;

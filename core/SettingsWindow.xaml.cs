@@ -19,6 +19,7 @@ public partial class SettingsWindow : Window
     public string UnlockShortcut => UnlockBox.Text.Trim();
     public string SelectedLanguage => Localizer.Normalize(LanguageBox.SelectedValue as string);
     public bool ResetRequested { get; private set; }
+    public bool ResetPlacementRequested { get; private set; }
     private string errorKey = "";
     public SettingsWindow(AppSettings settings, Action<double> preview, Func<string, string, string?> validate, Action? resetPlacement = null)
     {
@@ -80,7 +81,9 @@ public partial class SettingsWindow : Window
     }
     private void ResetPlacementClick(object sender, RoutedEventArgs e)
     {
-        resetPlacement?.Invoke();
+        // Queue this change in the draft. Cancel must not move or persist the main window.
+        ResetPlacementRequested = true;
+        SetError(TextKeys.DefaultsReady);
         original.Normal = new(); original.Compact = new() { Width = 460, Height = 166 }; original.Essential = new() { Width = 330, Height = 116 };
     }
     private void ResetAllClick(object sender, RoutedEventArgs e)

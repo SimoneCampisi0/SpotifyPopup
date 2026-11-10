@@ -71,6 +71,13 @@ internal static class DesignChecks
             ((CheckBox)settings.FindName("PausedBox")).IsChecked = true; await Pump();
             Check(((TextBox)settings.FindName("DelayBox")).IsEnabled, "Pause hiding enables its delay field");
             Check(((TextBox)settings.FindName("DelayBox")).ActualHeight <= 44, "Input padding is applied once and preserves a compact control height");
+            var resetInvoked = false;
+            var resetDialog = new SettingsWindow(new AppSettings(), _ => { }, (_, _) => null, () => resetInvoked = true);
+            resetDialog.Show(); resetDialog.SelectSection(4);
+            // Reset placement is staged; cancelling must never move or save the real window.
+            ((Button)resetDialog.FindName("ResetPlacementButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Check(resetDialog.ResetPlacementRequested && !resetInvoked, "Reset placement is staged until Save");
+            resetDialog.Close();
             settings.SelectSection(4); ((Button)settings.FindName("ResetAllButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Pump();
             Check(((Border)settings.FindName("ResetConfirmation")).IsVisible && !settings.ResetRequested, "Reset asks for an inline confirmation before changing any preferences");
             Check(((Button)settings.FindName("ConfirmResetButton")).IsDefault && !((Button)settings.FindName("SaveButton")).IsDefault, "Enter targets confirmation rather than silently saving the dialog");
