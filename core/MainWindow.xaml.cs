@@ -206,7 +206,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             stop.BeginAnimation(GradientStop.ColorProperty, null);
             // Keep the base value at the visible color until the replacement clock starts.
             stop.Color = from;
-            if (!settings.AnimateBackground || settings.ReduceMotion || !SystemParameters.ClientAreaAnimation) { stop.Color = target; return; }
+            if (!settings.AnimateBackground || settings.ReduceMotion) { stop.Color = target; return; }
             stop.BeginAnimation(GradientStop.ColorProperty, new ColorAnimation(from, target, TimeSpan.FromMilliseconds(500))
             {
                 FillBehavior = FillBehavior.HoldEnd,
