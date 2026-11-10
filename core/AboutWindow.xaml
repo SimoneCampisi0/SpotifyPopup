@@ -27,7 +27,7 @@
     <TextBlock Text="{loc:Text UpdatesHint}" Style="{StaticResource Hint}" Margin="0,6,0,16"/>
     <WrapPanel><Button x:Name="UpdateButton" Content="{loc:Text CheckUpdates}" Click="CheckUpdatesClick" Margin="0,0,8,8"/><Button Content="{loc:Text CopyDiagnostics}" Click="CopyDiagnosticsClick" Margin="0,0,0,8"/></WrapPanel>
     <TextBlock x:Name="UpdateStatus" Style="{StaticResource Hint}" AutomationProperties.LiveSetting="Polite"/>
-    <Button x:Name="DownloadButton" Content="{loc:Text OpenDownload}" Style="{StaticResource PrimaryButton}" Click="DownloadClick" Visibility="Collapsed" HorizontalAlignment="Left" Margin="0,12,0,0"/>
+    <WrapPanel Margin="0,12,0,0"><Button x:Name="InstallButton" Content="{loc:Text InstallUpdate}" Style="{StaticResource PrimaryButton}" Click="InstallClick" Visibility="Collapsed" Margin="0,0,10,0"/><Button x:Name="DownloadButton" Content="{loc:Text OpenDownload}" Click="DownloadClick" Visibility="Collapsed"/></WrapPanel>
    </StackPanel></Border>
   </StackPanel></ScrollViewer>
  </Grid></Border>
