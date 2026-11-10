@@ -507,8 +507,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Topmost = settings.AlwaysOnTop;
         var size = 96 * settings.CoverSizePercent / 100d;
         NormalArtwork.Width = NormalArtwork.Height = size;
-        if (TryFindResource("AccentBrush") is SolidColorBrush brush && !brush.IsFrozen)
-            brush.Color = (Color)ColorConverter.ConvertFromString(settings.AccentColor);
+        // A merged theme brush can be frozen by WPF. Override the resource instead of mutating it.
+        Resources["AccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.AccentColor));
         Changed();
     }
     private void ToggleTopmostClick(object sender, RoutedEventArgs e)

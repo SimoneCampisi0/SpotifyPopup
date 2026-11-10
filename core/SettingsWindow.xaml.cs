@@ -27,6 +27,7 @@ public partial class SettingsWindow : Window
     {
         this.preview = preview; this.validate = validate; this.resetPlacement = resetPlacement; original = settings.Clone();
         InitializeComponent();
+        Resources["AccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.AccentColor));
         Fill(settings);
         Localizer.Current.PropertyChanged += LanguageChanged;
         Closed += (_, _) => Localizer.Current.PropertyChanged -= LanguageChanged;

@@ -143,7 +143,7 @@
 <ColumnDefinition Width="48"/>
 </Grid.ColumnDefinitions>
 <Label Content="{loc:Text LockedOpacity}" Target="{Binding ElementName=OpacitySlider}" Style="{StaticResource FieldLabel}"/>
-<TextBlock x:Name="OpacityValue" Grid.Column="1" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Right" FontSize="13"/>
+<TextBlock x:Name="OpacityValue" Grid.Column="1" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" FontSize="13"/>
 </Grid>
 <Slider x:Name="OpacitySlider" Minimum="25" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OpacityChanged" AutomationProperties.Name="{loc:Text LockedOpacity}"/>
 <TextBlock Text="{loc:Text OpacityHint}" Style="{StaticResource Hint}" Margin="0,6,0,0"/>
