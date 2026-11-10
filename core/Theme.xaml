@@ -1,11 +1,11 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options">
  <SolidColorBrush x:Key="CanvasBrush" Color="#111316"/>
  <SolidColorBrush x:Key="PanelBrush" Color="#1A1D21"/>
  <SolidColorBrush x:Key="InputBrush" Color="#23272D"/>
  <SolidColorBrush x:Key="LineBrush" Color="#343A42"/>
  <SolidColorBrush x:Key="TextBrush" Color="#F3F5F7"/>
  <SolidColorBrush x:Key="MutedBrush" Color="#A9B1BD"/>
- <SolidColorBrush x:Key="AccentBrush" Color="#A9EACB"/>
+ <SolidColorBrush x:Key="AccentBrush" po:Freeze="False" Color="#A9EACB"/>
  <SolidColorBrush x:Key="AccentInkBrush" Color="#10251D"/>
  <BooleanToVisibilityConverter x:Key="VisibleWhenTrue"/>
  <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource TextBrush}"/></Style>
