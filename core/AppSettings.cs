@@ -30,6 +30,11 @@ public sealed class AppSettings
     public string Language { get; set; } = "auto";
     public bool StartWithWindows { get; set; }
     public bool StartInTray { get; set; }
+    public bool AlwaysOnTop { get; set; } = true;
+    public bool CheckUpdatesOnStartup { get; set; }
+    public string AccentColor { get; set; } = "#A9EACB";
+    public int CoverSizePercent { get; set; } = 100;
+    public bool ReduceMotion { get; set; }
     public string BackgroundMode { get; set; } = "artwork";
     public string BackgroundColor { get; set; } = "#24483C";
     public bool AnimateBackground { get; set; } = true;
@@ -51,6 +56,8 @@ public sealed class AppSettings
         PlayShortcut ??= ""; PreviousShortcut ??= ""; NextShortcut ??= ""; BackwardShortcut ??= ""; ForwardShortcut ??= "";
         BackgroundMode = BackgroundMode is "artwork" or "fixed" or "custom" ? BackgroundMode : "artwork";
         if (!ValidColor(BackgroundColor)) BackgroundColor = "#24483C";
+        if (!ValidColor(AccentColor)) AccentColor = "#A9EACB";
+        CoverSizePercent = Math.Clamp(CoverSizePercent, 75, 110);
         PauseDelaySeconds = Math.Clamp(PauseDelaySeconds, 10, 3600);
     }
     public static bool ValidColor(string? color) => color != null && System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9a-fA-F]{6}$");

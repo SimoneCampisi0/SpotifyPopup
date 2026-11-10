@@ -85,6 +85,8 @@
 <TextBlock Text="{loc:Text StartupHeading}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
 <CheckBox x:Name="StartupBox" Content="{loc:Text StartWithWindows}" AutomationProperties.Name="{loc:Text StartWithWindows}" />
 <CheckBox x:Name="TrayBox" Content="{loc:Text StartInTray}" AutomationProperties.Name="{loc:Text StartInTray}" />
+<CheckBox x:Name="TopmostBox" Content="{loc:Text AlwaysOnTop}" AutomationProperties.Name="{loc:Text AlwaysOnTop}"/>
+<CheckBox x:Name="AutoUpdateBox" Content="{loc:Text AutoCheckUpdates}" AutomationProperties.Name="{loc:Text AutoCheckUpdates}"/>
 <TextBlock Text="{loc:Text StartupHint}" Style="{StaticResource Hint}" Margin="0,10,0,0"/>
 </StackPanel>
 </Border>
@@ -122,12 +124,17 @@
 <TextBlock Text="{loc:Text ColorHint}" Style="{StaticResource Hint}" Margin="0,8,0,0"/>
 </StackPanel>
 <CheckBox x:Name="AnimationBox" Content="{loc:Text AnimateBackground}" AutomationProperties.Name="{loc:Text AnimateBackground}" Margin="0,8,0,0"/>
+<CheckBox x:Name="ReduceMotionBox" Content="{loc:Text ReduceMotion}" AutomationProperties.Name="{loc:Text ReduceMotion}"/>
 </StackPanel>
 </Border>
 <Border Style="{StaticResource Card}">
 <StackPanel>
 <TextBlock Text="{loc:Text PlayerHeading}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
 <CheckBox x:Name="ShowAlbumBox" Content="{loc:Text ShowAlbum}" AutomationProperties.Name="{loc:Text ShowAlbum}" />
+<Label Content="{loc:Text AccentColor}" Target="{Binding ElementName=AccentBox}" Style="{StaticResource FieldLabel}"/>
+<TextBox x:Name="AccentBox" Text="#A9EACB" AutomationProperties.Name="{loc:Text AccentColor}" FontFamily="Consolas" Margin="0,0,0,12"/>
+<Label Content="{loc:Text CoverSize}" Target="{Binding ElementName=CoverSizeSlider}" Style="{StaticResource FieldLabel}"/>
+<Slider x:Name="CoverSizeSlider" Minimum="75" Maximum="110" TickFrequency="5" IsSnapToTickEnabled="True" AutomationProperties.Name="{loc:Text CoverSize}" Margin="0,0,0,12"/>
 <CheckBox x:Name="SnapBox" Content="{loc:Text SnapEdges}" AutomationProperties.Name="{loc:Text SnapEdges}" />
 <Border Height="1" Background="#343A42" Margin="0,10,0,16"/>
 <Grid>

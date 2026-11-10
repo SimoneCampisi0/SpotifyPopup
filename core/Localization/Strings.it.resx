@@ -405,4 +405,16 @@
   <data name="VisibilitySection" xml:space="preserve">
     <value>Visibilità</value>
   </data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Mantieni la finestra sempre in primo piano</value></data>
+  <data name="AutoCheckUpdates" xml:space="preserve"><value>Controlla gli aggiornamenti all'avvio</value></data>
+  <data name="AccentColor" xml:space="preserve"><value>Colore principale (#RRGGBB)</value></data>
+  <data name="CoverSize" xml:space="preserve"><value>Dimensione copertina</value></data>
+  <data name="ReduceMotion" xml:space="preserve"><value>Riduci movimento e animazioni</value></data>
+  <data name="SpotifyVolume" xml:space="preserve"><value>Volume Spotify</value></data>
+  <data name="VolumeUnavailable" xml:space="preserve"><value>La sessione audio di Spotify non è disponibile.</value></data>
+  <data name="NewUpdateNotice" xml:space="preserve"><value>È disponibile un aggiornamento di Spotify Popup. Apri Impostazioni &gt; Informazioni.</value></data>
+  <data name="InstallUpdate" xml:space="preserve"><value>Installa aggiornamento</value></data>
+  <data name="InstallingUpdate" xml:space="preserve"><value>Download e verifica dell'aggiornamento...</value></data>
+  <data name="UpdateInstallFailed" xml:space="preserve"><value>Impossibile avviare l'installazione. Apri la pagina della release.</value></data>
+  <data name="UpdateInstallReady" xml:space="preserve"><value>Aggiornamento verificato. Riavvio in corso...</value></data>
 </root>
