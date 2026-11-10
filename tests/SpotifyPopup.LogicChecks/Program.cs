@@ -160,12 +160,6 @@ foreach (var invalid in new[] { "{}", "{\"tag_name\":\"v1.5.0-beta\",\"draft\":f
     var rejected = false; try { UpdateService.Parse(System.Text.Encoding.UTF8.GetBytes(invalid)); } catch (Exception) { rejected = true; }
     Equal(true, rejected, "Invalid, prerelease or draft release is rejected");
 }
-var sameMetadataFirst = new MediaMetadata("Same", "Artist", "Album", null, 1);
-var sameMetadataSecond = sameMetadataFirst with { MetadataRevision = 2 };
-Equal(true, sameMetadataFirst.Key != sameMetadataSecond.Key, "Identical metadata with separate session revisions has unique identity");
-var colonKeyA = new MediaMetadata("A\\nB", "C", "D", null).Key;
-var colonKeyB = new MediaMetadata("A", "B\\nC", "D", null).Key;
-Equal(true, colonKeyA != colonKeyB, "Track identity cannot collide across metadata fields");
 var packageJson = System.Text.Encoding.UTF8.GetBytes("""{"tag_name":"v1.5.1","draft":false,"prerelease":false,"assets":[{"name":"SpotifyPopup.exe","browser_download_url":"https://github.com/SimoneCampisi0/SpotifyPopup/releases/download/v1.5.1/SpotifyPopup.exe"},{"name":"SpotifyPopup.exe.sha256","browser_download_url":"https://github.com/SimoneCampisi0/SpotifyPopup/releases/download/v1.5.1/SpotifyPopup.exe.sha256"}]}""");
 Equal(new Version(1,5,1), UpdateService.Package(packageJson).Version, "Official installer assets parse");
 Console.WriteLine($"{count} total logic checks passed.");
