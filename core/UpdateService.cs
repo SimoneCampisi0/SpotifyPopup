@@ -97,20 +97,19 @@ public sealed class UpdateService
             if (response.Content.Headers.ContentLength is > 350_000_000) throw new InvalidDataException("Installer is too large.");
             using var source = await response.Content.ReadAsStreamAsync(cancellation);
             using var destinationStream = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, true);
-            using var sha = SHA256.Create();
+            using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
             var buffer = new byte[81920];
             long size = 0; int n;
             while ((n = await source.ReadAsync(buffer, cancellation)) > 0)
             {
                 size += n;
                 if (size > 350_000_000) throw new InvalidDataException("Installer is too large.");
-                sha.TransformBlock(buffer, 0, n, null, 0);
+                sha.AppendData(buffer, 0, n);
                 await destinationStream.WriteAsync(buffer.AsMemory(0, n), cancellation);
             }
-            sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
             await destinationStream.FlushAsync(cancellation);
             if (size < 10_000_000 ||
-                !CryptographicOperations.FixedTimeEquals(Convert.FromHexString(expectedHash), sha.Hash!))
+                !CryptographicOperations.FixedTimeEquals(Convert.FromHexString(expectedHash), sha.GetHashAndReset()))
                 throw new InvalidDataException("Release checksum mismatch.");
             File.Move(temp, destination, true);
             return destination;
