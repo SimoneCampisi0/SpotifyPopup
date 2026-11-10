@@ -1,0 +1,29 @@
+Spotify Popup v1.5.1
+
+Stability
+- Queue window-position reset until the user saves Settings. Cancel no longer moves or persists the window.
+- Track media metadata revisions so identically titled successive tracks are distinguishable for seek validation.
+- Avoid unnecessary metadata/artwork reads after seek or play/pause commands.
+- Resolve completed feature branches dynamically instead of hardcoding the v1.5.0 branch.
+
+Playback and convenience
+- Control the Spotify desktop audio session volume with a dedicated slider; never change system master volume.
+- Make always-on-top optional, with a quick context-menu toggle.
+- Optional startup checks for new stable GitHub releases (off by default).
+
+Appearance and accessibility
+- Custom accent color (#RRGGBB) and adjustable album cover size.
+- Reduced-motion preference that suppresses background animations.
+- Named volume control and keyboard-accessible Settings.
+
+Updating
+- Install a verified update directly from Settings > About when a newer stable release is available.
+- Download the official executable and checksum over HTTPS, validate the expected GitHub release assets, enforce size limits and verify SHA-256.
+- Use a separate PowerShell helper to wait until the app exits, replace the executable, attempt a restart and restore a backup when replacement fails.
+- Retain the existing browser-download fallback.
+
+Requirements and limits
+- Windows 10 2004+ or Windows 11 (x64); Spotify desktop is required for per-session audio control.
+- The volume slider is disabled when Windows does not expose a Spotify audio session.
+- The assisted updater requires PowerShell and write permissions to the application's folder.
+- Real Spotify, screen-reader, mixed-DPI and update-from-protected-folder scenarios still warrant manual validation.

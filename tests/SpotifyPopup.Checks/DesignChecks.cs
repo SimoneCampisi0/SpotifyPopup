@@ -51,6 +51,13 @@ internal static class DesignChecks
             Localizer.Current.Apply(language);
             var settings = new SettingsWindow(new AppSettings { Language = language }, _ => { }, (_, _) => null);
             settings.Show(); settings.Width = settings.MinWidth; settings.Height = settings.MinHeight;
+            settings.SelectSection(0); await Pump();
+            Check(((CheckBox)settings.FindName("TopmostBox")).IsChecked == true, "Always-on-top enabled by default");
+            Check(((CheckBox)settings.FindName("AutoUpdateBox")).IsChecked == false, "Automatic update checks are opt-in");
+            settings.SelectSection(1); await Pump();
+            Check(((Slider)settings.FindName("CoverSizeSlider")).Value == 100, "Cover artwork uses default size");
+            Check(((TextBox)settings.FindName("AccentBox")).Text == "#A9EACB", "Default accent color loads");
+
             for (var page = 0; page < 5; page++)
             {
                 settings.SelectSection(page); await Pump();

@@ -162,4 +162,13 @@ foreach (var invalid in new[] { "{}", "{\"tag_name\":\"v1.5.0-beta\",\"draft\":f
 }
 var packageJson = System.Text.Encoding.UTF8.GetBytes("""{"tag_name":"v1.5.1","draft":false,"prerelease":false,"assets":[{"name":"SpotifyPopup.exe","browser_download_url":"https://github.com/SimoneCampisi0/SpotifyPopup/releases/download/v1.5.1/SpotifyPopup.exe"},{"name":"SpotifyPopup.exe.sha256","browser_download_url":"https://github.com/SimoneCampisi0/SpotifyPopup/releases/download/v1.5.1/SpotifyPopup.exe.sha256"}]}""");
 Equal(new Version(1,5,1), UpdateService.Package(packageJson).Version, "Official installer assets parse");
+var invalidPackage = System.Text.Encoding.UTF8.GetBytes(System.Text.Encoding.UTF8.GetString(packageJson).Replace("https://github.com/SimoneCampisi0/SpotifyPopup/releases/download/", "https://example.com/SimoneCampisi0/SpotifyPopup/releases/download/"));
+var invalidPackageRejected = false;
+try { UpdateService.Package(invalidPackage); } catch (InvalidDataException) { invalidPackageRejected = true; }
+Equal(true, invalidPackageRejected, "Update installer rejects untrusted asset origins");
+var appearancePreferences = new AppSettings { AccentColor = "invalid", CoverSizePercent = 1000, AlwaysOnTop = false, ReduceMotion = true };
+appearancePreferences.Normalize();
+Equal("#A9EACB", appearancePreferences.AccentColor, "Invalid accent resets safely");
+Equal(110, appearancePreferences.CoverSizePercent, "Cover size clamps to supported range");
+Equal(false, appearancePreferences.AlwaysOnTop, "Always-on-top opt-out is preserved");
 Console.WriteLine($"{count} total logic checks passed.");

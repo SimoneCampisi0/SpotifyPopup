@@ -25,6 +25,16 @@ The player uses a shared charcoal-and-mint design across the overlay, Settings, 
 
 The executable initializes Per-Monitor V2 DPI awareness before creating app windows. The Windows packaging check verifies the published window's DPI-awareness context; real monitor-to-monitor transitions still require hands-on verification. Existing preferences and positions are preserved, with dimensions clamped where needed to fit the redesigned layouts.
 
+## What's new in v1.5.1
+
+- **Spotify volume:** adjust Windows' audio session volume for the Spotify desktop process, without changing the system master volume. The control is disabled if Windows exposes no compatible session.
+- **Optional update checks:** choose whether the app checks GitHub at startup. Manual checks remain available in Settings → About.
+- **Assisted updates:** click **Install update** in About when a newer stable release is available. The app downloads the official executable and its SHA-256 checksum, verifies the complete download, then starts a PowerShell helper that waits for the app to exit before replacing and restarting it. The helper retains a previous executable for rollback if replacement fails. The existing **Open download** action is still available.
+- **Customization:** configure accent color, artwork size, reduced animation and always-on-top behavior. The main context menu can toggle always-on-top instantly.
+- **Stability:** window position reset is staged until Save, media metadata revision distinguishes track changes, redundant artwork reads are reduced, and merged feature branch cleanup no longer hardcodes a versioned name.
+
+**Notes:** Audio-session controls depend on Windows exposing Spotify desktop audio and are not guaranteed to work with Spotify Web. Assisted updates require PowerShell and write permission to the executable folder. A failed helper can leave a `.update-error.txt` file beside the staged package in `%LocalAppData%\\SpotifyPopup\\Updates`. Backup/rollback is best-effort, and updates remain initiated by the user. The app does not require administrator privileges unless it is installed in a protected directory.
+
 ## Features
 
 - **Windows startup:** optionally start at sign-in for your Windows account, with an independent tray-only startup option. Both are off by default.
