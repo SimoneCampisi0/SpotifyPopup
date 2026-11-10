@@ -7,9 +7,11 @@ namespace SpotifyPopup;
 internal sealed record MediaCapabilities(bool PlayPause, bool Play, bool Pause, bool Previous, bool Next, bool Seek);
 internal sealed record MediaPlayback(bool Playing, string Status, double Rate, MediaCapabilities Controls);
 internal sealed record MediaTimeline(double Start, double Duration, double Position, DateTimeOffset Updated);
-internal sealed record MediaMetadata(string Title, string Artist, string Album, ImageSource? Artwork)
+internal sealed record MediaMetadata(string Title, string Artist, string Album, ImageSource? Artwork, long MetadataRevision = 0)
 {
-    internal string Key => Title + "\n" + Artist + "\n" + Album;
+    // Media-session notifications distinguish successive tracks with identical display metadata.
+    // Length-prefixed fields avoid collisions when a title contains a newline.
+    internal string Key => $"{MetadataRevision}:{Title.Length}:{Title}{Artist.Length}:{Artist}{Album.Length}:{Album}";
 }
 internal interface IMediaSession : IDisposable
 {
@@ -59,16 +61,22 @@ internal sealed class WindowsMediaSession : IMediaSession
 {
     internal GlobalSystemMediaTransportControlsSession Session { get; }
     public event EventHandler<bool>? Changed;
+    private long metadataRevision;
     internal WindowsMediaSession(GlobalSystemMediaTransportControlsSession session)
     {
         Session = session; session.MediaPropertiesChanged += MetadataChanged;
         session.PlaybackInfoChanged += PlaybackChanged; session.TimelinePropertiesChanged += TimelineChanged;
     }
-    private void MetadataChanged(GlobalSystemMediaTransportControlsSession s, MediaPropertiesChangedEventArgs e) => Changed?.Invoke(this, true);
+    private void MetadataChanged(GlobalSystemMediaTransportControlsSession s, MediaPropertiesChangedEventArgs e)
+    {
+        Interlocked.Increment(ref metadataRevision);
+        Changed?.Invoke(this, true);
+    }
     private void PlaybackChanged(GlobalSystemMediaTransportControlsSession s, PlaybackInfoChangedEventArgs e) => Changed?.Invoke(this, false);
     private void TimelineChanged(GlobalSystemMediaTransportControlsSession s, TimelinePropertiesChangedEventArgs e) => Changed?.Invoke(this, false);
     public async Task<MediaMetadata> ReadAsync(CancellationToken cancellation)
     {
+        var capturedRevision = Volatile.Read(ref metadataRevision);
         var properties = await Session.TryGetMediaPropertiesAsync().AsTask(cancellation);
         ImageSource? artwork = null;
         if (properties.Thumbnail != null)
@@ -84,7 +92,7 @@ internal sealed class WindowsMediaSession : IMediaSession
             catch (Exception ex) { Diagnostics.Record("artwork-read", ex); }
         }
         cancellation.ThrowIfCancellationRequested();
-        return new(properties.Title ?? "", properties.Artist ?? "", properties.AlbumTitle ?? "", artwork);
+        return new(properties.Title ?? "", properties.Artist ?? "", properties.AlbumTitle ?? "", artwork, capturedRevision);
     }
     public MediaPlayback Playback()
     {

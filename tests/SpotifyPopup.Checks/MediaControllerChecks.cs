@@ -7,6 +7,11 @@ internal static class MediaControllerChecks
     {
         var count = 0;
         void Check(bool value, string name) { if (!value) throw new Exception(name); count++; Console.WriteLine("PASS " + name); }
+        var sameMetadataFirst = new MediaMetadata("Same", "Artist", "Album", null, 1);
+        var sameMetadataSecond = sameMetadataFirst with { MetadataRevision = 2 };
+        Check(sameMetadataFirst.Key != sameMetadataSecond.Key, "Identical metadata uses separate session revisions");
+        Check(new MediaMetadata("A\\nB", "C", "D", null).Key !=
+              new MediaMetadata("A", "B\\nC", "D", null).Key, "Field lengths prevent track identity collisions");
         var backend = new Backend();
         var controller = new MediaController(Dispatcher.CurrentDispatcher, () => backend, TimeSpan.FromMilliseconds(80));
         var notices = new List<string>(); controller.Notice += (_, key) => notices.Add(key);

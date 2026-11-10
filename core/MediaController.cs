@@ -173,7 +173,12 @@ public sealed class MediaController : IMediaController
         }
         catch (OperationCanceledException) when (disposed || cancellation.IsCancellationRequested) { }
         catch (Exception ex) { if (!disposed && version == generation) Recover(ex); }
-        finally { commandPending = false; if (!disposed) await RefreshAsync(true); }
+        finally
+        {
+            commandPending = false;
+            // A play/pause or seek action does not invalidate artwork; only track skips need an eager metadata refresh.
+            if (!disposed) await RefreshAsync(action is MediaAction.Next or MediaAction.Previous);
+        }
     }
     private void Reset(string status) => Publish(new MediaSnapshot { Status = status });
     private void Publish(MediaSnapshot snapshot)

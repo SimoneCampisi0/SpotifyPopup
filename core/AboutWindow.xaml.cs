@@ -24,7 +24,7 @@ public partial class AboutWindow : Window
     }
     private async void CheckUpdatesClick(object sender, RoutedEventArgs e)
     {
-        UpdateButton.IsEnabled = false; DownloadButton.Visibility = Visibility.Collapsed;
+        UpdateButton.IsEnabled = false; DownloadButton.Visibility = Visibility.Collapsed; InstallButton.Visibility = Visibility.Collapsed;
         UpdateStatus.Text = Localizer.Get(TextKeys.CheckingUpdates);
         try
         {
@@ -38,10 +38,42 @@ public partial class AboutWindow : Window
             var available = latest > current;
             UpdateStatus.Text = available ? string.Format(Localizer.Get(TextKeys.UpdateAvailable), latest) : Localizer.Get(TextKeys.UpToDate);
             DownloadButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+            InstallButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
         }
         catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
         catch (Exception ex) { Diagnostics.Record("update-check", ex); if (!lifetime.IsCancellationRequested) UpdateStatus.Text = Localizer.Get(TextKeys.UpdateFailed); }
         finally { if (!lifetime.IsCancellationRequested) UpdateButton.IsEnabled = true; }
+    }
+
+    private async void InstallClick(object sender, RoutedEventArgs e)
+    {
+        InstallButton.IsEnabled = false;
+        UpdateButton.IsEnabled = false;
+        UpdateStatus.Text = Localizer.Get(TextKeys.InstallingUpdate);
+        try
+        {
+            using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+            using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+            var verifiedPath = await new UpdateService(client).DownloadVerifiedAsync(cancellation.Token);
+            if (lifetime.IsCancellationRequested) return;
+            UpdateInstaller.Launch(verifiedPath);
+            UpdateStatus.Text = Localizer.Get(TextKeys.UpdateInstallReady);
+            Application.Current.Shutdown();
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            Diagnostics.Record("update-install", ex);
+            if (!lifetime.IsCancellationRequested) UpdateStatus.Text = Localizer.Get(TextKeys.UpdateInstallFailed);
+        }
+        finally
+        {
+            if (!lifetime.IsCancellationRequested)
+            {
+                InstallButton.IsEnabled = true;
+                UpdateButton.IsEnabled = true;
+            }
+        }
     }
     private void DownloadClick(object sender, RoutedEventArgs e)
     {

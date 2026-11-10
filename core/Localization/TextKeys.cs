@@ -3,6 +3,18 @@ namespace SpotifyPopup;
 // Stable resource identifiers; never persist translated text.
 public static class TextKeys
 {
+    public const string AlwaysOnTop = "AlwaysOnTop";
+    public const string AutoCheckUpdates = "AutoCheckUpdates";
+    public const string AccentColor = "AccentColor";
+    public const string CoverSize = "CoverSize";
+    public const string ReduceMotion = "ReduceMotion";
+    public const string SpotifyVolume = "SpotifyVolume";
+    public const string VolumeUnavailable = "VolumeUnavailable";
+    public const string NewUpdateNotice = "NewUpdateNotice";
+    public const string InstallUpdate = "InstallUpdate";
+    public const string InstallingUpdate = "InstallingUpdate";
+    public const string UpdateInstallFailed = "UpdateInstallFailed";
+    public const string UpdateInstallReady = "UpdateInstallReady";
     public const string About = "About";
     public const string AboutTitle = "AboutTitle";
     public const string CreatedBy = "CreatedBy";

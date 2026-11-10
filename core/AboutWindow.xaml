@@ -13,13 +13,13 @@
     <Image x:Name="AppLogo" Width="72" Height="72" RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="{loc:Text LogoName}"/>
     <TextBlock Text="Spotify Popup" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,6"/>
     <TextBlock Text="{loc:Text AboutTagline}" Style="{StaticResource Hint}" HorizontalAlignment="Center"/>
-    <Border CornerRadius="10" Background="#263B33" Padding="10,4" HorizontalAlignment="Center" Margin="0,12,0,0"><TextBlock x:Name="VersionText" FontSize="11" Foreground="{StaticResource AccentBrush}"/></Border>
+    <Border CornerRadius="10" Background="#263B33" Padding="10,4" HorizontalAlignment="Center" Margin="0,12,0,0"><TextBlock x:Name="VersionText" FontSize="11" Foreground="{DynamicResource AccentBrush}"/></Border>
    </StackPanel>
    <Border Style="{StaticResource Card}"><StackPanel>
     <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="{loc:Text CreatedBy}" Style="{StaticResource Hint}"/><TextBlock x:Name="AuthorText" Grid.Column="1" Text="Simone Campisi" FontSize="13" FontWeight="SemiBold"/></Grid>
     <Border Height="1" Background="#343A42" Margin="0,16"/>
     <TextBlock Text="{loc:Text LicenseName}" FontSize="13"/>
-    <Button x:Name="LicenseButton" Content="{loc:Text ReadLicense}" Style="{StaticResource QuietButton}" Click="LicenseClick" HorizontalAlignment="Left" Padding="0,8" Foreground="{StaticResource AccentBrush}" Margin="0,4,0,0"/>
+    <Button x:Name="LicenseButton" Content="{loc:Text ReadLicense}" Style="{StaticResource QuietButton}" Click="LicenseClick" HorizontalAlignment="Left" Padding="0,8" Foreground="{DynamicResource AccentBrush}" Margin="0,4,0,0"/>
     <TextBox x:Name="LicenseText" Visibility="Collapsed" Height="180" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" FontSize="11" Padding="12" Margin="0,10,0,0" AutomationProperties.Name="{loc:Text LicenseText}"/>
    </StackPanel></Border>
    <Border Style="{StaticResource Card}"><StackPanel>
@@ -27,7 +27,7 @@
     <TextBlock Text="{loc:Text UpdatesHint}" Style="{StaticResource Hint}" Margin="0,6,0,16"/>
     <WrapPanel><Button x:Name="UpdateButton" Content="{loc:Text CheckUpdates}" Click="CheckUpdatesClick" Margin="0,0,8,8"/><Button Content="{loc:Text CopyDiagnostics}" Click="CopyDiagnosticsClick" Margin="0,0,0,8"/></WrapPanel>
     <TextBlock x:Name="UpdateStatus" Style="{StaticResource Hint}" AutomationProperties.LiveSetting="Polite"/>
-    <Button x:Name="DownloadButton" Content="{loc:Text OpenDownload}" Style="{StaticResource PrimaryButton}" Click="DownloadClick" Visibility="Collapsed" HorizontalAlignment="Left" Margin="0,12,0,0"/>
+    <WrapPanel Margin="0,12,0,0"><Button x:Name="InstallButton" Content="{loc:Text InstallUpdate}" Style="{StaticResource PrimaryButton}" Click="InstallClick" Visibility="Collapsed" Margin="0,0,10,0"/><Button x:Name="DownloadButton" Content="{loc:Text OpenDownload}" Click="DownloadClick" Visibility="Collapsed"/></WrapPanel>
    </StackPanel></Border>
   </StackPanel></ScrollViewer>
  </Grid></Border>

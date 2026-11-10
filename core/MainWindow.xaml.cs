@@ -22,6 +22,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly bool enableShell;
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly DispatcherTimer saveTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
+    private readonly DispatcherTimer volumeTimer = new() { Interval = TimeSpan.FromMilliseconds(240) };
+    private bool updatingVolume, volumePolling, volumeApplying;
+    private DateTimeOffset nextVolumePoll;
     private AppSettings settings;
     private readonly AutoVisibilityPolicy visibility = new();
     private readonly StartupRegistration startup = new();
@@ -42,6 +45,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private string? startupWarning;
     public PlayerState Player { get; } = new();
     public event PropertyChangedEventHandler? PropertyChanged;
+    public bool IsTopmostPreference => settings.AlwaysOnTop;
     public bool IsNormalLayout => !settings.CompactMode && !settings.EssentialMode;
     public bool IsCompactLayout => settings.CompactMode && !settings.EssentialMode;
     public bool IsEssentialLayout => settings.EssentialMode;
@@ -62,10 +66,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         media.Updated += OnMediaUpdated; media.Notice += OnNotice;
         Player.PropertyChanged += PlayerChanged;
         ApplyLayout();
+        ApplyPersonalization();
+        volumeTimer.Tick += async (_, _) => { volumeTimer.Stop(); await ApplyVolumeAsync(); };
         timer.Tick += (_, _) =>
         {
             media.Tick();
             EvaluateVisibility();
+            if (DateTimeOffset.UtcNow >= nextVolumePoll && !volumeApplying && !volumeTimer.IsEnabled)
+            {
+                nextVolumePoll = DateTimeOffset.UtcNow.AddSeconds(3);
+                _ = PollVolumeAsync();
+            }
             if (noticeUntil != default && DateTimeOffset.UtcNow >= noticeUntil) { noticeUntil = default; Player.SetNotice(""); }
         };
         saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveSettings(); };
@@ -140,6 +151,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         if (startupWarning != null) ShowNotice(startupWarning);
         ApplyBackground(); timer.Start();
+        if (enableShell && settings.CheckUpdatesOnStartup) _ = CheckUpdatesAtStartupAsync();
         try { await media.InitializeAsync(); }
         catch (Exception ex) { Diagnostics.Record("media-load", ex); OnMediaUpdated(this, new MediaSnapshot { Status = TextKeys.MediaUnavailable }); }
     }
@@ -185,7 +197,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
     private void ApplyPalette(ArtworkPalette palette)
     {
-        if (closed || (palette == currentPalette && settings.AnimateBackground)) return;
+        if (closed || (palette == currentPalette && settings.AnimateBackground && !settings.ReduceMotion)) return;
         currentPalette = palette;
         void Animate(GradientStop stop, ArtworkColor color)
         {
@@ -194,7 +206,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             stop.BeginAnimation(GradientStop.ColorProperty, null);
             // Keep the base value at the visible color until the replacement clock starts.
             stop.Color = from;
-            if (!settings.AnimateBackground) { stop.Color = target; return; }
+            if (!settings.AnimateBackground || settings.ReduceMotion) { stop.Color = target; return; }
             stop.BeginAnimation(GradientStop.ColorProperty, new ColorAnimation(from, target, TimeSpan.FromMilliseconds(500))
             {
                 FillBehavior = FillBehavior.HoldEnd,
@@ -456,7 +468,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             {
                 settings = dialog.Draft; settings.Normalize(); Localizer.Current.Apply(settings.Language);
                 if (dialog.ResetRequested) { ApplyLayout(); ResetPlacement(); }
-                visibility.Reset(); ApplyBackground(); Changed(); SaveSettings();
+                else if (dialog.ResetPlacementRequested) ResetPlacement();
+                visibility.Reset(); ApplyPersonalization(); ApplyBackground(); Changed(); SaveSettings();
             }
             else settings.LockedOpacity = originalOpacity;
         }
@@ -488,6 +501,70 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // Force applying a palette when transitions have just been disabled.
         currentPalette = new(new(255, 255, 255), new(255, 255, 255)); ApplyPalette(palette);
     }
+
+    private void ApplyPersonalization()
+    {
+        Topmost = settings.AlwaysOnTop;
+        var size = 96 * settings.CoverSizePercent / 100d;
+        NormalArtwork.Width = NormalArtwork.Height = size;
+        // A merged theme brush can be frozen by WPF. Override the resource instead of mutating it.
+        Resources["AccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.AccentColor));
+        Changed();
+    }
+    private void ToggleTopmostClick(object sender, RoutedEventArgs e)
+    {
+        settings.AlwaysOnTop = !settings.AlwaysOnTop;
+        ApplyPersonalization();
+        SaveSettings();
+    }
+    private void VolumeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!runtimeStarted || updatingVolume || !Player.Connected) return;
+        volumeTimer.Stop();
+        volumeTimer.Start();
+    }
+    private async Task PollVolumeAsync()
+    {
+        if (closed || volumePolling) return;
+        volumePolling = true;
+        try
+        {
+            var volume = Player.Connected ? await Task.Run(SpotifyVolumeService.Read) : null;
+            if (closed || volumeApplying || volumeTimer.IsEnabled) return;
+            updatingVolume = true;
+            VolumeSlider.IsEnabled = volume.HasValue;
+            if (volume.HasValue) VolumeSlider.Value = volume.Value * 100;
+        }
+        catch (Exception ex) { Diagnostics.Record("volume-poll", ex); if (!closed) VolumeSlider.IsEnabled = false; }
+        finally { updatingVolume = false; volumePolling = false; }
+    }
+    private async Task ApplyVolumeAsync()
+    {
+        if (closed || volumeApplying || !Player.Connected) return;
+        volumeApplying = true;
+        try
+        {
+            var value = (float)(VolumeSlider.Value / 100);
+            if (!await Task.Run(() => SpotifyVolumeService.Write(value)) && !closed)
+                ShowNotice(TextKeys.VolumeUnavailable);
+        }
+        catch (Exception ex) { Diagnostics.Record("volume-set", ex); if (!closed) ShowNotice(TextKeys.VolumeUnavailable); }
+        finally { volumeApplying = false; nextVolumePoll = DateTimeOffset.UtcNow.AddSeconds(1); }
+    }
+    private async Task CheckUpdatesAtStartupAsync()
+    {
+        try
+        {
+            using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var latest = await new UpdateService(client).LatestAsync(timeout.Token);
+            if (closed || !settings.CheckUpdatesOnStartup) return;
+            var installed = typeof(MainWindow).Assembly.GetName().Version!;
+            if (latest > new Version(installed.Major, installed.Minor, installed.Build))
+                ShowNotice(TextKeys.NewUpdateNotice);
+        }
+        catch (Exception ex) { Diagnostics.Record("update-startup", ex); }
+    }
     private void OpenSpotifyClick(object sender, RoutedEventArgs e)
     {
         try { Process.Start(new ProcessStartInfo("spotify:") { UseShellExecute = true }); }
@@ -500,7 +577,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         CapturePlacement(); store.Save(settings); closed = true;
         artworkBackground.Dispose();
         BackgroundStart.BeginAnimation(GradientStop.ColorProperty, null); BackgroundEnd.BeginAnimation(GradientStop.ColorProperty, null);
-        timer.Stop(); saveTimer.Stop(); media.Updated -= OnMediaUpdated; media.Notice -= OnNotice; media.Dispose();
+        timer.Stop(); saveTimer.Stop(); volumeTimer.Stop(); media.Updated -= OnMediaUpdated; media.Notice -= OnNotice; media.Dispose();
         Localizer.Current.PropertyChanged -= LanguageChanged; Player.PropertyChanged -= PlayerChanged; Player.Dispose();
         if (enableShell) SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         hotkeys?.Dispose(); source?.RemoveHook(WindowHook); unlock?.Close();

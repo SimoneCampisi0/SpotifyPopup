@@ -29,6 +29,7 @@
    <MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text LayoutNormal}" IsCheckable="True" IsChecked="{Binding IsNormalLayout, Mode=OneWay}" Click="NormalLayoutClick"/>
    <MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text LayoutCompact}" IsCheckable="True" IsChecked="{Binding IsCompactLayout, Mode=OneWay}" Click="CompactLayoutClick"/>
    <MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text LayoutEssential}" IsCheckable="True" IsChecked="{Binding IsEssentialLayout, Mode=OneWay}" Click="EssentialLayoutClick"/>
+   <MenuItem Header="{loc:Text AlwaysOnTop}" IsCheckable="True" IsChecked="{Binding IsTopmostPreference, Mode=OneWay}" Click="ToggleTopmostClick"/>
    <Separator Style="{StaticResource {x:Type Separator}}"/><MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text Settings}" Click="SettingsClick"/><MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text OpenSpotify}" Click="OpenSpotifyClick"/><MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text LockPopup}" Click="LockClick"/>
    <Separator Style="{StaticResource {x:Type Separator}}"/><MenuItem Style="{StaticResource {x:Type MenuItem}}" Header="{loc:Text Exit}" Click="ExitClick"/>
   </ContextMenu></Border.ContextMenu>
@@ -48,7 +49,7 @@
    <Grid x:Name="NormalLayout" Grid.Row="1" Margin="0,12,0,0">
     <Grid.RowDefinitions><RowDefinition Height="*" MinHeight="108"/><RowDefinition Height="38"/><RowDefinition Height="56"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <Grid x:Name="NormalMetadata" VerticalAlignment="Center"><Grid.ColumnDefinitions><ColumnDefinition Width="116"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-     <ContentControl Content="{Binding Player}" ContentTemplate="{StaticResource CoverArt}" HorizontalAlignment="Left"/>
+     <Viewbox x:Name="NormalArtwork" Width="96" Height="96" HorizontalAlignment="Left"><ContentControl Content="{Binding Player}" ContentTemplate="{StaticResource CoverArt}"/></Viewbox>
      <StackPanel Grid.Column="1" VerticalAlignment="Center">
       <TextBlock x:Name="NormalTitle" Text="{Binding Player.Title}" Style="{StaticResource MetadataText}" Foreground="White" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" LineHeight="27" MaxHeight="54"/>
       <TextBlock Text="{Binding Player.Artist}" Style="{StaticResource MetadataText}" FontSize="13" Margin="0,8,0,0"/>
@@ -64,6 +65,10 @@
      <Button  Content="&#xE777;" Style="{StaticResource GlassButton}" Click="RestartClick" ToolTip="{loc:Text RestartTrack}" AutomationProperties.Name="{loc:Text RestartTrack}" HorizontalAlignment="Left" IsEnabled="{Binding Player.CanSeek}" Foreground="#B9C3CD"/>
      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
       <Button x:Name="PreviousButton" Content="&#xE892;" Style="{StaticResource GlassButton}" Click="PreviousClick" ToolTip="{loc:Text PreviousTrack}" AutomationProperties.Name="{loc:Text PreviousTrack}" Width="36" Height="40" IsEnabled="{Binding Player.CanPrevious}"/><Border Width="14"/><Button x:Name="PlayButton" Content="{Binding Player.PlayGlyph}" Tag="Primary" Style="{StaticResource GlassButton}" Width="52" Height="52" FontSize="20" Background="#A9EACB" Foreground="#10251D" IsEnabled="{Binding Player.CanPlayPause}" ToolTip="{Binding Player.PlayLabel}" AutomationProperties.Name="{Binding Player.PlayLabel}" Click="PlayClick"/><Border Width="14"/><Button x:Name="NextButton" Content="&#xE893;" Style="{StaticResource GlassButton}" Click="NextClick" ToolTip="{loc:Text NextTrack}" AutomationProperties.Name="{loc:Text NextTrack}" Width="36" Height="40" IsEnabled="{Binding Player.CanNext}"/>
+     </StackPanel>
+     <StackPanel Width="90" HorizontalAlignment="Right" VerticalAlignment="Center">
+      <TextBlock Text="{loc:Text SpotifyVolume}" FontSize="10" Foreground="#B9C3CD"/>
+      <Slider x:Name="VolumeSlider" Minimum="0" Maximum="100" Value="50" SmallChange="2" LargeChange="10" IsEnabled="False" ValueChanged="VolumeChanged" ToolTip="{loc:Text SpotifyVolume}" AutomationProperties.Name="{loc:Text SpotifyVolume}"/>
      </StackPanel>
     </Grid>
     <Button Grid.Row="3" Content="{loc:Text OpenSpotify}" Style="{StaticResource PrimaryButton}" MinHeight="36" Padding="12,8" Margin="0,8,0,0" Visibility="{Binding OpenSpotifyVisibility}" AutomationProperties.Name="{loc:Text OpenSpotify}" Click="OpenSpotifyClick"/>

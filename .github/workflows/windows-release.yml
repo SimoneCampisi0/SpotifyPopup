@@ -110,14 +110,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $branch = 'feat/ui-v1.5.0'
-          $branches = gh api "repos/$env:GITHUB_REPOSITORY/branches" --jq '.[].name'
-          if ($LASTEXITCODE -ne 0) { throw 'Could not list branches.' }
-          if ($branch -notin $branches) { exit 0 }
-          $ref = gh api "repos/$env:GITHUB_REPOSITORY/git/ref/heads/$branch" | ConvertFrom-Json
-          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve development branch.' }
-          $head = $ref.object.sha
-          $comparison = gh api "repos/$env:GITHUB_REPOSITORY/compare/$head...$env:GITHUB_SHA" | ConvertFrom-Json
-          if ($LASTEXITCODE -ne 0 -or $comparison.behind_by -ne 0) { throw 'Development branch has unmerged changes; cleanup stopped.' }
-          gh api --method DELETE "repos/$env:GITHUB_REPOSITORY/git/refs/heads/$branch"
-          if ($LASTEXITCODE -ne 0) { throw 'Could not remove merged development branch.' }
+          # Resolve the merged PR for this exact main commit instead of hardcoding a release branch.
+          $prs = @(gh api "repos/$env:GITHUB_REPOSITORY/commits/$env:GITHUB_SHA/pulls" | ConvertFrom-Json)
+          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve pull requests associated with the release commit.' }
+          foreach ($pr in $prs) {
+            if (!$pr.merged_at -or $pr.base.ref -ne 'main') { continue }
+            if ($pr.head.repo.full_name -ne $env:GITHUB_REPOSITORY) { continue }
+            $branch = [string]$pr.head.ref
+            if (!$branch.StartsWith('feat/')) { continue }
+            $encoded = [uri]::EscapeDataString($branch)
+            $refJson = gh api "repos/$env:GITHUB_REPOSITORY/git/ref/heads/$encoded" 2>$null
+            if ($LASTEXITCODE -ne 0) { continue } # Already deleted.
+            $ref = $refJson | ConvertFrom-Json
+            $head = $ref.object.sha
+            $comparison = gh api "repos/$env:GITHUB_REPOSITORY/compare/$head...$env:GITHUB_SHA" | ConvertFrom-Json
+            if ($LASTEXITCODE -ne 0) { throw "Could not compare $branch with main." }
+            if ($comparison.behind_by -ne 0) { throw "Refusing to delete $branch: it has unmerged commits." }
+            gh api --method DELETE "repos/$env:GITHUB_REPOSITORY/git/refs/heads/$encoded"
+            if ($LASTEXITCODE -ne 0) { throw "Could not delete merged branch $branch." }
+          }

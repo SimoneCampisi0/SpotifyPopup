@@ -16,8 +16,13 @@ internal static class DesignChecks
         void Check(bool value, string name) { if (!value) throw new Exception(name); count++; Console.WriteLine("PASS " + name); }
         async Task Pump() { await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); }
         var store = new SettingsStore(System.IO.Path.Combine(output, "design-player.json"));
-        store.Save(new AppSettings { Language = "en", AnimateBackground = false });
+        store.Save(new AppSettings { Language = "en", AnimateBackground = false, AccentColor = "#EEA367", CoverSizePercent = 110 });
         var controller = new Fake(); var player = new MainWindow(controller, store, false); player.Show();
+        Check(((SolidColorBrush)player.TryFindResource("AccentBrush")).Color == Color.FromRgb(238, 163, 103),
+            "Custom accent is applied to the live WPF palette");
+        Check(Math.Abs(((System.Windows.Controls.Viewbox)player.FindName("NormalArtwork")).Width - 105.6) < .01,
+            "Artwork size preference is applied to the real player");
+
         controller.Publish(new MediaSnapshot { Title = "Slow Motion", Artist = "Nights & Days", Album = "After Hours · 2026", Artwork = Cover(),
             Connected = true, Playing = true, Status = TextKeys.Playing, CanPlayPause = true, CanPrevious = true, CanNext = true, CanSeek = true, Duration = 242, Position = 87, TrackKey = "design" });
         await Pump(); await Task.Delay(100);
@@ -37,7 +42,7 @@ internal static class DesignChecks
         Check(play.Template.FindName("Surface", play) is Border, "Player uses the shared rounded button template");
         ((Button)player.FindName("MenuButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Pump();
         var menu = ((Border)player.FindName("RootSurface")).ContextMenu;
-        Check(menu.IsOpen && menu.Items.OfType<MenuItem>().Count(i => i.IsCheckable && i.IsChecked) == 1, "Player menu opens with exactly one active layout");
+        Check(menu.IsOpen && menu.Items.OfType<MenuItem>().Count(i => i.IsCheckable && i.IsChecked && (string?)i.Header != Localizer.Get(TextKeys.AlwaysOnTop)) == 1, "Player menu opens with exactly one active layout");
         Save(menu, System.IO.Path.Combine(output, "design-player-menu.png")); menu.IsOpen = false;
         player.ToggleCompact(); player.Width = 420; player.Height = player.MinHeight; await Pump();
         Save(player, System.IO.Path.Combine(output, "design-compact.png"));
@@ -51,6 +56,13 @@ internal static class DesignChecks
             Localizer.Current.Apply(language);
             var settings = new SettingsWindow(new AppSettings { Language = language }, _ => { }, (_, _) => null);
             settings.Show(); settings.Width = settings.MinWidth; settings.Height = settings.MinHeight;
+            settings.SelectSection(0); await Pump();
+            Check(((CheckBox)settings.FindName("TopmostBox")).IsChecked == true, "Always-on-top enabled by default");
+            Check(((CheckBox)settings.FindName("AutoUpdateBox")).IsChecked == false, "Automatic update checks are opt-in");
+            settings.SelectSection(1); await Pump();
+            Check(((Slider)settings.FindName("CoverSizeSlider")).Value == 100, "Cover artwork uses default size");
+            Check(((TextBox)settings.FindName("AccentBox")).Text == "#A9EACB", "Default accent color loads");
+
             for (var page = 0; page < 5; page++)
             {
                 settings.SelectSection(page); await Pump();
@@ -71,6 +83,13 @@ internal static class DesignChecks
             ((CheckBox)settings.FindName("PausedBox")).IsChecked = true; await Pump();
             Check(((TextBox)settings.FindName("DelayBox")).IsEnabled, "Pause hiding enables its delay field");
             Check(((TextBox)settings.FindName("DelayBox")).ActualHeight <= 44, "Input padding is applied once and preserves a compact control height");
+            var resetInvoked = false;
+            var resetDialog = new SettingsWindow(new AppSettings(), _ => { }, (_, _) => null, () => resetInvoked = true);
+            resetDialog.Show(); resetDialog.SelectSection(4);
+            // Reset placement is staged; cancelling must never move or save the real window.
+            ((Button)resetDialog.FindName("ResetPlacementButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Check(resetDialog.ResetPlacementRequested && !resetInvoked, "Reset placement is staged until Save");
+            resetDialog.Close();
             settings.SelectSection(4); ((Button)settings.FindName("ResetAllButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Pump();
             Check(((Border)settings.FindName("ResetConfirmation")).IsVisible && !settings.ResetRequested, "Reset asks for an inline confirmation before changing any preferences");
             Check(((Button)settings.FindName("ConfirmResetButton")).IsDefault && !((Button)settings.FindName("SaveButton")).IsDefault, "Enter targets confirmation rather than silently saving the dialog");

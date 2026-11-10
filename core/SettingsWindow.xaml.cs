@@ -19,11 +19,15 @@ public partial class SettingsWindow : Window
     public string UnlockShortcut => UnlockBox.Text.Trim();
     public string SelectedLanguage => Localizer.Normalize(LanguageBox.SelectedValue as string);
     public bool ResetRequested { get; private set; }
+    public bool ResetPlacementRequested { get; private set; }
+    public bool CheckUpdatesOnStartup => AutoUpdateBox.IsChecked == true;
+    public bool AlwaysOnTop => TopmostBox.IsChecked == true;
     private string errorKey = "";
     public SettingsWindow(AppSettings settings, Action<double> preview, Func<string, string, string?> validate, Action? resetPlacement = null)
     {
         this.preview = preview; this.validate = validate; this.resetPlacement = resetPlacement; original = settings.Clone();
         InitializeComponent();
+        Resources["AccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.AccentColor));
         Fill(settings);
         Localizer.Current.PropertyChanged += LanguageChanged;
         Closed += (_, _) => Localizer.Current.PropertyChanged -= LanguageChanged;
@@ -37,6 +41,8 @@ public partial class SettingsWindow : Window
     }
     private void SaveClick(object sender, RoutedEventArgs e)
     {
+        if (!AppSettings.ValidColor(AccentBox.Text.Trim()))
+        { SelectSection(1); SetError(TextKeys.InvalidColor); AccentBox.Focus(); return; }
         if (BackgroundBox.SelectedValue as string == "custom" && !AppSettings.ValidColor(ColorBox.Text.Trim()))
         { SelectSection(1); SetError(TextKeys.InvalidColor); ColorBox.Focus(); return; }
         if (PausedBox.IsChecked == true && (!int.TryParse(DelayBox.Text, out var delay) || delay < 10 || delay > 3600))
@@ -54,6 +60,9 @@ public partial class SettingsWindow : Window
             value.ShowAlbum = ShowAlbum; value.SnapToEdges = SnapToEdges; value.LockedOpacity = LockedOpacity;
             value.ToggleShortcut = ToggleShortcut; value.UnlockShortcut = UnlockShortcut; value.Language = SelectedLanguage;
             value.StartWithWindows = StartupBox.IsChecked == true; value.StartInTray = TrayBox.IsChecked == true;
+            value.AlwaysOnTop = AlwaysOnTop; value.CheckUpdatesOnStartup = CheckUpdatesOnStartup;
+            value.AccentColor = AccentBox.Text.Trim(); value.CoverSizePercent = (int)Math.Round(CoverSizeSlider.Value);
+            value.ReduceMotion = ReduceMotionBox.IsChecked == true;
             value.BackgroundMode = BackgroundBox.SelectedValue as string ?? "artwork"; value.BackgroundColor = ColorBox.Text.Trim();
             value.AnimateBackground = AnimationBox.IsChecked == true; value.HideWhenDisconnected = DisconnectedBox.IsChecked == true;
             value.HideWhenPaused = PausedBox.IsChecked == true; value.PauseDelaySeconds = int.TryParse(DelayBox.Text, out var delay) ? delay : 60;
@@ -67,6 +76,9 @@ public partial class SettingsWindow : Window
         LanguageBox.SelectedValue = value.Language; ShowAlbumBox.IsChecked = value.ShowAlbum; SnapBox.IsChecked = value.SnapToEdges;
         OpacitySlider.Value = value.LockedOpacity * 100; UpdateOpacity(); ToggleBox.Text = value.ToggleShortcut; UnlockBox.Text = value.UnlockShortcut;
         StartupBox.IsChecked = value.StartWithWindows; TrayBox.IsChecked = value.StartInTray;
+        TopmostBox.IsChecked = value.AlwaysOnTop; AutoUpdateBox.IsChecked = value.CheckUpdatesOnStartup;
+        AccentBox.Text = value.AccentColor; CoverSizeSlider.Value = value.CoverSizePercent;
+        ReduceMotionBox.IsChecked = value.ReduceMotion;
         BackgroundBox.SelectedValue = value.BackgroundMode; ColorBox.Text = value.BackgroundColor; AnimationBox.IsChecked = value.AnimateBackground;
         DisconnectedBox.IsChecked = value.HideWhenDisconnected; PausedBox.IsChecked = value.HideWhenPaused;
         DelayBox.Text = value.PauseDelaySeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -80,7 +92,9 @@ public partial class SettingsWindow : Window
     }
     private void ResetPlacementClick(object sender, RoutedEventArgs e)
     {
-        resetPlacement?.Invoke();
+        // Queue this change in the draft. Cancel must not move or persist the main window.
+        ResetPlacementRequested = true;
+        SetError(TextKeys.DefaultsReady);
         original.Normal = new(); original.Compact = new() { Width = 460, Height = 166 }; original.Essential = new() { Width = 330, Height = 116 };
     }
     private void ResetAllClick(object sender, RoutedEventArgs e)
