@@ -18,7 +18,7 @@ internal static class SpotifyVolumeService
         IAudioSessionEnumerator? sessions = null;
         try
         {
-            devices = (IMMDeviceEnumerator)new MMDeviceEnumerator();
+            devices = (IMMDeviceEnumerator)Activator.CreateInstance(typeof(MMDeviceEnumerator))!;
             devices.GetDefaultAudioEndpoint(0, 1, out device);
             var iid = typeof(IAudioSessionManager2).GUID;
             device.Activate(ref iid, 23, IntPtr.Zero, out var raw);
