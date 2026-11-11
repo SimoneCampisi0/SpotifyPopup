@@ -1,0 +1,8 @@
+Spotify Popup v1.5.2
+
+Interface
+- Simplify the player's volume label to "Volume" in English and Italian.
+- Use the same concise wording for the volume slider tooltip and accessible name.
+
+Distribution
+- Self-contained Windows x64 executable with SHA-256 checksum.

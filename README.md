@@ -25,6 +25,10 @@ The player uses a shared charcoal-and-mint design across the overlay, Settings, 
 
 The executable initializes Per-Monitor V2 DPI awareness before creating app windows. The Windows packaging check verifies the published window's DPI-awareness context; real monitor-to-monitor transitions still require hands-on verification. Existing preferences and positions are preserved, with dimensions clamped where needed to fit the redesigned layouts.
 
+## What's new in v1.5.2
+
+- **Volume label:** the player now displays **Volume** in both English and Italian, including its tooltip and accessible name.
+
 ## What's new in v1.5.1
 
 - **Spotify volume:** adjust Windows' audio session volume for the Spotify desktop process, without changing the system master volume. The control is disabled if Windows exposes no compatible session.
