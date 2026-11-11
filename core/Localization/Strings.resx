@@ -410,7 +410,7 @@
   <data name="AccentColor" xml:space="preserve"><value>Accent color (#RRGGBB)</value></data>
   <data name="CoverSize" xml:space="preserve"><value>Album artwork size</value></data>
   <data name="ReduceMotion" xml:space="preserve"><value>Reduce motion and animations</value></data>
-  <data name="SpotifyVolume" xml:space="preserve"><value>Spotify volume</value></data>
+  <data name="SpotifyVolume" xml:space="preserve"><value>Volume</value></data>
   <data name="VolumeUnavailable" xml:space="preserve"><value>Spotify audio session is unavailable.</value></data>
   <data name="NewUpdateNotice" xml:space="preserve"><value>A new Spotify Popup update is available. Open Settings &gt; About.</value></data>
   <data name="InstallUpdate" xml:space="preserve"><value>Install update</value></data>
